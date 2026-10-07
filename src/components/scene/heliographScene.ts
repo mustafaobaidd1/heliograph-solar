@@ -260,6 +260,8 @@ export class HeliographScene {
     this.controls.maxPolarAngle = 84 * DEG;
     this.controls.minPolarAngle = 8 * DEG;
     this.controls.target.set(0, 2.2, 0);
+    // On touch screens keep vertical swipes for scrolling the page; horizontal drags orbit.
+    if (window.matchMedia?.('(pointer: coarse)').matches) this.canvas.style.touchAction = 'pan-y';
     this.controls.addEventListener('change', () => this.requestRender());
     this.controls.addEventListener('start', () => {
       this.userMoved = true;

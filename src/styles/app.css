@@ -3178,3 +3178,12 @@ main {
     display: none;
   }
 }
+
+@media (pointer: coarse) {
+  .scene__host {
+    touch-action: pan-y;
+  }
+  .heat__overlay {
+    touch-action: pan-y;
+  }
+}
