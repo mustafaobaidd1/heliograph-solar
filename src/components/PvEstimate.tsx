@@ -178,7 +178,12 @@ export function PvEstimate({
               </dl>
               <details className="pv__table">
                 <summary>Monthly values as a table</summary>
-                <div className="table-scroll">
+                <div
+                  className="table-scroll"
+                  tabIndex={0}
+                  role="region"
+                  aria-label="Monthly values"
+                >
                   <table className="data-table">
                     <thead>
                       <tr>

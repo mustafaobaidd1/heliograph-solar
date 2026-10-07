@@ -61,9 +61,7 @@ export function hourlyCsv(input: CsvInput): string {
       vis = 0,
       tAir = 0,
       tCell = 0,
-      power = 0,
-      el = 0,
-      az = 0;
+      power = 0;
     for (let k = 0; k < sub; k++) {
       const t = h + (k + 0.5) * (60 / sub) * MS_PER_MINUTE;
       const s = model.sample(t, factors);
@@ -90,8 +88,8 @@ export function hourlyCsv(input: CsvInput): string {
     }
     // Sun position at the middle of the hour.
     const midSun = sunPosition(h + 30 * MS_PER_MINUTE, model.spec.lat, model.spec.lon);
-    el = midSun.elevation;
-    az = midSun.azimuth;
+    const el = midSun.elevation;
+    const az = midSun.azimuth;
     const local = utcToZoned(h, timeZone);
     const hh = Math.floor(local.minutes / 60);
     const stamp = `${local.year}-${String(local.month).padStart(2, '0')}-${String(local.day).padStart(2, '0')}T${String(hh).padStart(2, '0')}:00`;

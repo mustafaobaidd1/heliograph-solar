@@ -129,7 +129,7 @@ export function ExportShare({
         </div>
       </div>
       <div className="export__preview">
-        <div className="table-scroll">
+        <div className="table-scroll" tabIndex={0} role="region" aria-label="CSV preview">
           <table className="data-table data-table--compact">
             <caption>Preview · {previewLabel} · hourly means, W/m²</caption>
             <thead>

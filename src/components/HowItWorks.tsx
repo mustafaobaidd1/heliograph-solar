@@ -230,7 +230,12 @@ export function HowItWorks() {
             Regenerated with <code>npm run validate</code> ({validation.generated}); the same
             references drive the unit tests.
           </p>
-          <div className="table-scroll">
+          <div
+            className="table-scroll"
+            tabIndex={0}
+            role="region"
+            aria-label="Sun position validation"
+          >
             <table className="data-table data-table--wide">
               <caption>
                 Sun position against the NOAA Solar Calculator (values shown by the live page)
@@ -281,7 +286,12 @@ export function HowItWorks() {
             by up to 7 s because NOAA’s calculator evaluates the equation of time half a day early;
             USNO’s transit times agree with ours.
           </p>
-          <div className="table-scroll">
+          <div
+            className="table-scroll"
+            tabIndex={0}
+            role="region"
+            aria-label="Optimum tilt validation"
+          >
             <table className="data-table data-table--wide">
               <caption>
                 Optimum fixed tilt (equator-facing) against PVGIS 5.3 and the Jacobson &amp; Jadhav

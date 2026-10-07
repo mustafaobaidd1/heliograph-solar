@@ -2754,6 +2754,9 @@ main {
     monospace;
   color: var(--ink-3);
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
   background: var(--paper-2);
   padding: 4px 8px;
   border-radius: 3px;
