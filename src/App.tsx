@@ -283,7 +283,7 @@ export function App() {
       polarNote,
       setNote: setMin !== null && setMin >= 1440 ? '(next day)' : null,
     };
-  }, [times, sample, riseMin, setMin, localMin, date, place.lat, place.lon]);
+  }, [times, sample, riseMin, setMin, localMin, date, place.lat, place.lon, place.timeZone]);
   const blockedMinutes = useMemo(
     () =>
       horizon.length
