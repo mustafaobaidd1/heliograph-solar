@@ -16,6 +16,7 @@ import { SkylineEditor } from './components/SkylineEditor';
 import { SunPathDiagram } from './components/SunPathDiagram';
 import { TimeControls } from './components/TimeControls';
 import { Card } from './components/ui';
+import { WorldMap } from './components/WorldMap';
 import type { PanelJob, SiteJob } from './lib/analysis';
 import { loadClimate } from './lib/climateSource';
 import { seasonColor } from './lib/color';
@@ -31,7 +32,7 @@ import type { SiteSpec } from './lib/solar/model';
 import { nextOrdinaryDay, sunPosition } from './lib/solar/sunPosition';
 import { MONTH_SHORT, daysInYear, formatClock, formatLongDate } from './lib/solar/time';
 import type { CalendarDate } from './lib/solar/time';
-import { utcToZoned, zonedTimeToUtc } from './lib/solar/zone';
+import { nauticalZone, utcToZoned, zonedTimeToUtc } from './lib/solar/zone';
 import { dayPath, seasonFraction, sunTimesForLocalDate } from './lib/sunpath';
 import { useAnalysis } from './lib/useAnalysis';
 
@@ -356,6 +357,19 @@ export function App() {
     },
     [stopIntro],
   );
+  const pickOnMap = useCallback(
+    (lat: number, lon: number) =>
+      setPlace({
+        presetId: null,
+        name: 'Picked on the map',
+        lat,
+        lon,
+        timeZone: nauticalZone(lon),
+        altitude: 0,
+        zoneEstimated: true,
+      }),
+    [setPlace],
+  );
   const setPanel = useCallback(
     (o: { tilt: number; azimuth: number }) => setState((s) => ({ ...s, panel: o })),
     [],
@@ -510,6 +524,28 @@ export function App() {
   const todayDate = localDate(new Date(), place.timeZone);
   const dateLabel = `${date.day} ${MONTH_SHORT[date.month - 1]} ${date.year}`;
   const aoi = (Math.acos(Math.max(-1, Math.min(1, poa.cosAoi))) * 180) / Math.PI;
+  const preview = useMemo(() => {
+    const rows: { hour: number; elevation: number; ghi: number; poa: number; beam: number }[] = [];
+    for (let h = 0; h < 24; h++) {
+      const pts = day.points.filter((p) => p.minute >= h * 60 && p.minute < (h + 1) * 60);
+      if (!pts.length) continue;
+      const mean = (f: (p: (typeof pts)[number]) => number) =>
+        pts.reduce((a, p) => a + f(p), 0) / pts.length;
+      const ghi = mean((p) => p.ghi);
+      if (ghi < 1) continue;
+      const mid = pts.reduce((b, p) =>
+        Math.abs(p.minute - (h * 60 + 30)) < Math.abs(b.minute - (h * 60 + 30)) ? p : b,
+      );
+      rows.push({
+        hour: h,
+        elevation: mid.elevation,
+        ghi,
+        poa: mean((p) => p.poa),
+        beam: mean((p) => p.beam),
+      });
+    }
+    return rows;
+  }, [day.points]);
   const buildCsv = useCallback(
     () =>
       hourlyCsv({
@@ -540,10 +576,22 @@ export function App() {
               utc={utc}
               declination={sample.sun.declination}
               eqTime={sample.sun.eqTime}
+              onPickMap={pickOnMap}
             />
             <SceneView
               state={sceneState}
               onReady={onSceneReady}
+              inset={
+                <WorldMap
+                  variant="inset"
+                  lat={place.lat}
+                  lon={place.lon}
+                  utc={utc}
+                  declination={sample.sun.declination}
+                  eqTime={sample.sun.eqTime}
+                  onPick={pickOnMap}
+                />
+              }
               caption={
                 <>
                   <span className="scene__fig">Fig. 1</span>
@@ -551,6 +599,16 @@ export function App() {
                     Massing model · {formatLongDate(date)} · {formatClock(minutes)}
                   </span>
                 </>
+              }
+              notice={
+                nightNote ? (
+                  <p className="note note--soft" role="note">
+                    {nightNote}{' '}
+                    <button type="button" className="btn btn--link" onClick={goNow}>
+                      Show now
+                    </button>
+                  </p>
+                ) : null
               }
               overlay={
                 <div className={`sunchip ${sample.sun.elevation > 0 ? '' : 'is-night'}`}>
@@ -565,14 +623,6 @@ export function App() {
                 </div>
               }
             />
-            {nightNote && (
-              <p className="note note--soft stage__note" role="note">
-                {nightNote}{' '}
-                <button type="button" className="btn btn--link" onClick={goNow}>
-                  Show now
-                </button>
-              </p>
-            )}
             <TimeControls
               minutes={minutes}
               onMinutes={userMinutes}
@@ -690,6 +740,8 @@ export function App() {
             }
           />
           <ExportShare
+            preview={preview}
+            previewLabel={dateLabel}
             buildCsv={buildCsv}
             fileName={csvFileName(place.name, year, panel)}
             shareUrl={shareUrl}

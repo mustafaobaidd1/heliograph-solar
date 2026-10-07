@@ -21,9 +21,9 @@ export interface Box {
   kind: 'house' | 'roof' | 'block';
 }
 
-export const DISC_R = 12;
-export const DOME_R = 12;
-export const SKYLINE_R = 10.4;
+export const DISC_R = 11;
+export const DOME_R = 9;
+export const SKYLINE_R = 10;
 
 export const HOUSE: Box[] = [
   { kind: 'house', x: -0.7, z: 0.1, w: 4.4, d: 3.4, y0: 0, h: 2.7 }, // main volume

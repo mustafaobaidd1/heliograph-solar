@@ -847,10 +847,6 @@ main {
   min-width: 0;
 }
 
-.stage__note {
-  margin-top: -4px;
-}
-
 .band {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -861,10 +857,9 @@ main {
 /* ---------- Place bar --------------------------------------------------------------------- */
 
 .placebar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(200px, 26%, 300px);
-  gap: 14px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .placebar__main {
@@ -899,38 +894,34 @@ main {
   margin-top: 2px;
 }
 
-.place__actions {
+.place__top {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 8px 16px;
 }
 
-.place__custom {
-  flex: 1 1 auto;
+.place__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }
 
-.place__custom > summary {
-  list-style: none;
-  width: max-content;
-}
-
-.place__custom > summary::-webkit-details-marker {
-  display: none;
-}
-
-.place__custom > summary::after {
+.btn--disclosure::after {
   content: '';
   width: 7px;
   height: 7px;
   border-right: 1.5px solid currentColor;
   border-bottom: 1.5px solid currentColor;
-  transform: rotate(45deg) translate(-2px, -2px);
-  margin-left: 4px;
+  transform: translateY(-2px) rotate(45deg);
+  margin-left: 2px;
+  transition: transform 0.15s;
 }
 
-.place__custom[open] > summary::after {
-  transform: rotate(-135deg) translate(-2px, -2px);
+.btn--disclosure.is-open::after {
+  transform: translateY(2px) rotate(-135deg);
 }
 
 .place__form {
@@ -938,7 +929,6 @@ main {
   grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(0, 1.6fr) minmax(0, 0.9fr) auto;
   gap: 8px 10px;
   align-items: end;
-  margin-top: 8px;
   padding: 12px;
   background: var(--sheet);
   border: 1px solid var(--rule);
@@ -975,6 +965,22 @@ main {
   font-size: 11px;
   line-height: 1.35;
   color: var(--ink-3);
+}
+
+.worldmap--inset {
+  background: rgba(251, 248, 242, 0.92);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 6px 6px 5px;
+  box-shadow: var(--shadow);
+}
+
+.worldmap--inset figcaption {
+  font-size: 10.5px;
+}
+
+.worldmap--card {
+  display: none;
 }
 
 .wm-sea {
@@ -1034,7 +1040,7 @@ main {
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   overflow: hidden;
-  height: clamp(380px, 56vh, 620px);
+  height: clamp(380px, calc(100vh - 372px), 620px);
   background:
     radial-gradient(120% 90% at 50% 30%, rgba(255, 252, 245, 0.95), rgba(244, 239, 230, 0) 70%),
     linear-gradient(var(--rule) 1px, transparent 1px) 0 0 / 40px 40px,
@@ -1204,10 +1210,54 @@ main {
   font-style: normal;
 }
 
-.scene__overlay {
+.scene__labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.scene__cardinal {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font: 400 21px/1 var(--serif);
+  color: var(--ink);
+  text-shadow:
+    0 0 4px var(--paper),
+    0 0 10px var(--paper);
+  transition: opacity 0.2s;
+}
+
+.scene__cardinal--N {
+  color: var(--vermilion);
+  font-size: 24px;
+}
+
+.scene__notice {
+  position: absolute;
+  left: 10px;
+  bottom: 50px;
+  width: min(470px, calc(100% - 20px));
+}
+
+.scene__inset {
   position: absolute;
   right: 10px;
-  top: 8px;
+  top: 10px;
+  width: clamp(170px, 27%, 236px);
+}
+
+.scene__notice .note {
+  background: rgba(251, 248, 242, 0.94);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--ochre-deep);
+  box-shadow: var(--shadow);
+}
+
+.scene__overlay {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
   pointer-events: none;
 }
 
@@ -1239,7 +1289,7 @@ main {
 .scene__hint {
   position: absolute;
   left: 12px;
-  bottom: 10px;
+  top: 34px;
   font-size: 12px;
   color: var(--ink-3);
   pointer-events: none;
@@ -1498,8 +1548,27 @@ main {
 .daybar__jumps {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
   justify-content: flex-end;
+}
+
+.daybar__jumplabel {
+  width: 100%;
+  text-align: right;
+  margin-bottom: -1px;
+}
+
+.daybar__jumps .chip {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
+
+@media (pointer: coarse) {
+  .daybar__jumps .chip {
+    min-height: 44px;
+  }
 }
 
 /* ---------- Readout ----------------------------------------------------------------------- */
@@ -1945,6 +2014,34 @@ main {
   flex: 1 1 220px;
 }
 
+.skyline-editor__table > summary,
+.pv__table > summary {
+  list-style: none;
+}
+
+.skyline-editor__table > summary::-webkit-details-marker,
+.pv__table > summary::-webkit-details-marker {
+  display: none;
+}
+
+.skyline-editor__table > summary::before,
+.pv__table > summary::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  margin: 0 4px 0 2px;
+  transition: transform 0.15s;
+}
+
+.skyline-editor__table[open] > summary::before,
+.pv__table[open] > summary::before {
+  transform: rotate(45deg);
+}
+
 .skyline-editor__table > summary {
   cursor: pointer;
   font: 600 13px/1.3 var(--sans);
@@ -2109,9 +2206,14 @@ main {
 }
 
 .mark--panel rect {
-  fill: var(--sheet);
+  fill: none;
   stroke: #26303d;
   stroke-width: 2;
+}
+
+.mark--panel rect.halo {
+  stroke: var(--sheet);
+  stroke-width: 5;
 }
 
 .mark--open circle {
@@ -2205,7 +2307,7 @@ main {
   height: 10px;
   transform: rotate(45deg);
   border: 2px solid #26303d;
-  background: var(--sheet);
+  background: transparent;
 }
 
 .key--open {
@@ -2228,6 +2330,67 @@ main {
 .opt__meta {
   font-size: 11.5px;
   color: var(--ink-3);
+}
+
+.slices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--rule);
+  padding-top: 10px;
+}
+
+.slices__tol {
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+
+.slices__charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.slice {
+  margin: 0;
+  min-width: 0;
+}
+
+.slice figcaption {
+  font: 600 11px/1.3 var(--sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 2px;
+}
+
+.slice svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.slice__line {
+  fill: none;
+  stroke: var(--ochre-deep);
+  stroke-width: 2;
+}
+
+.slice__band {
+  stroke: var(--ink-3);
+  stroke-dasharray: 3 3;
+}
+
+.slice__drop {
+  stroke: #26303d;
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.slice__dot {
+  fill: var(--sheet);
+  stroke: #26303d;
+  stroke-width: 2;
 }
 
 /* ---------- Comparison -------------------------------------------------------------------- */
@@ -2414,6 +2577,10 @@ main {
   gap: 12px;
 }
 
+.atmos__foot .btn {
+  white-space: nowrap;
+}
+
 .export__row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2439,6 +2606,28 @@ main {
   min-width: 0;
   font-size: 12.5px;
   color: var(--ink-2);
+}
+
+.export__preview {
+  border-top: 1px solid var(--rule);
+  padding-top: 10px;
+}
+
+.export__preview .table-scroll {
+  max-height: 236px;
+  overflow-y: auto;
+}
+
+.data-table--compact th,
+.data-table--compact td {
+  padding: 4px 10px 4px 0;
+  font-size: 12.5px;
+}
+
+.data-table--compact thead th {
+  position: sticky;
+  top: 0;
+  background: var(--sheet);
 }
 
 /* ---------- How it works ------------------------------------------------------------------ */
@@ -2642,6 +2831,11 @@ main {
     grid-column: 1 / -1;
     justify-content: flex-start;
   }
+  .daybar__jumplabel {
+    width: auto;
+    text-align: left;
+    margin-right: 4px;
+  }
   .bar {
     grid-template-columns: minmax(130px, 0.9fr) minmax(0, 1.2fr) 84px;
   }
@@ -2739,16 +2933,59 @@ main {
     flex-wrap: wrap;
     top: 8px;
   }
-  .scene__overlay {
-    top: auto;
-    bottom: 54px;
-    right: 8px;
+  .scene__notice {
+    top: 36px;
+    bottom: auto;
+  }
+  .scene__notice .note {
+    font-size: 12px;
+    padding: 6px 10px;
   }
   .scene__hint {
     display: none;
   }
+  .scene__reset {
+    width: 44px;
+    padding: 0;
+  }
+  .scene__reset-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .scene__inset,
+  .worldmap--inset {
+    display: none;
+  }
+  .worldmap--card {
+    display: flex;
+  }
+  .stage__main,
   .stage__side {
-    grid-template-columns: 1fr;
+    display: contents;
+  }
+  .stage .scene {
+    order: 1;
+  }
+  .stage .timecontrols {
+    order: 2;
+  }
+  .stage .card--readout {
+    order: 3;
+  }
+  .stage .placebar {
+    order: 4;
+  }
+  .stage .card--panel {
+    order: 5;
   }
   /* The time scrubber docks to the bottom of the screen, within thumb reach. */
   .timebar {

@@ -58,11 +58,11 @@ export function TimeControls(p: TimeControlsProps) {
     }
   };
 
-  const jumps: { label: string; date: CalendarDate }[] = [
-    { label: 'Mar equinox', date: { year: p.date.year, month: 3, day: 20 } },
-    { label: 'Jun solstice', date: { year: p.date.year, month: 6, day: 21 } },
-    { label: 'Sep equinox', date: { year: p.date.year, month: 9, day: 22 } },
-    { label: 'Dec solstice', date: { year: p.date.year, month: 12, day: 21 } },
+  const jumps: { label: string; name: string; date: CalendarDate }[] = [
+    { label: 'Mar 20', name: 'March equinox', date: { year: p.date.year, month: 3, day: 20 } },
+    { label: 'Jun 21', name: 'June solstice', date: { year: p.date.year, month: 6, day: 21 } },
+    { label: 'Sep 22', name: 'September equinox', date: { year: p.date.year, month: 9, day: 22 } },
+    { label: 'Dec 21', name: 'December solstice', date: { year: p.date.year, month: 12, day: 21 } },
   ];
   const isToday =
     p.date.year === p.todayDate.year &&
@@ -170,7 +170,10 @@ export function TimeControls(p: TimeControlsProps) {
             })}
           </div>
         </div>
-        <div className="daybar__jumps" role="group" aria-label="Jump to a date">
+        <div className="daybar__jumps" role="group" aria-labelledby={`${id}-jumps`}>
+          <span className="field__label daybar__jumplabel" id={`${id}-jumps`}>
+            Equinoxes &amp; solstices
+          </span>
           {jumps.map((j) => {
             const active = j.date.month === p.date.month && j.date.day === p.date.day;
             return (
@@ -179,6 +182,8 @@ export function TimeControls(p: TimeControlsProps) {
                 type="button"
                 className={`chip ${active ? 'is-active' : ''}`}
                 aria-pressed={active}
+                aria-label={`${j.name}, ${j.label}`}
+                title={j.name}
                 onClick={() => p.onDate(j.date)}
               >
                 {j.label}

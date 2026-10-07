@@ -354,20 +354,6 @@ export function SunPathDiagram({
             </text>
           );
         })}
-        {monthLines
-          .filter((m) => m.month === 6 || m.month === 12 || m.month === 3)
-          .map((m) => {
-            const run = m.runs[0];
-            if (!run) return null;
-            const p = run[Math.min(run.length - 1, 4)];
-            const [x, y] = P(p);
-            return (
-              <text key={m.month} x={x} y={y} dx={6} dy={-4} className="sp-daylabel" fill={m.color}>
-                {m.month === 3 ? 'Mar/Sep 21' : `${MONTH_SHORT[m.month - 1]} 21`}
-              </text>
-            );
-          })}
-
         {skylinePath && (
           <g className="sp-skyline">
             <path d={skylinePath} fillRule="evenodd" className="fill" />
@@ -409,10 +395,25 @@ export function SunPathDiagram({
           <span className="swatch swatch--line" style={{ background: selColor }} /> Selected day
         </li>
         <li>
-          <span className="swatch swatch--line" style={{ background: seasonColor(0) }} /> Jun 21
+          <span
+            className="swatch swatch--line"
+            style={{ background: monthLines.find((m) => m.month === 6)?.color }}
+          />{' '}
+          Jun 21
         </li>
         <li>
-          <span className="swatch swatch--line" style={{ background: seasonColor(1) }} /> Dec 21
+          <span
+            className="swatch swatch--line"
+            style={{ background: monthLines.find((m) => m.month === 3)?.color }}
+          />{' '}
+          Mar/Sep 21
+        </li>
+        <li>
+          <span
+            className="swatch swatch--line"
+            style={{ background: monthLines.find((m) => m.month === 12)?.color }}
+          />{' '}
+          Dec 21
         </li>
         <li>
           <span className="swatch swatch--dash" /> Hour loops (standard time)

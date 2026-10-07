@@ -5,6 +5,7 @@ const THIN = ' ';
 
 export function fmt(x: number, digits = 0): string {
   if (!Number.isFinite(x)) return '–';
+  if (Math.abs(x) < 0.5 * 10 ** -digits) x = 0;
   const s = x.toLocaleString('en-GB', {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,

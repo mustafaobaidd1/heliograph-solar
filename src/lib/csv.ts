@@ -8,6 +8,7 @@ import type { PvParams } from './solar/annual';
 import { airTemperature } from './solar/climate';
 import type { ClimateFactors, ClimateNormals } from './solar/climate';
 import { localMeanMonth } from './solar/model';
+import { sunPosition } from './solar/sunPosition';
 import type { Orientation, SiteModel } from './solar/model';
 import { MS_PER_HOUR, MS_PER_MINUTE, daysInYear } from './solar/time';
 import { utcToZoned, zonedTimeToUtc } from './solar/zone';
@@ -86,11 +87,11 @@ export function hourlyCsv(input: CsvInput): string {
       tAir += air;
       tCell += p.total > 0 ? cell : air;
       power += p.total > 0 ? pvPower(eff, cell, pv) : 0;
-      if (k === sub / 2) {
-        el = s.sun.elevation;
-        az = s.sun.azimuth;
-      }
     }
+    // Sun position at the middle of the hour.
+    const midSun = sunPosition(h + 30 * MS_PER_MINUTE, model.spec.lat, model.spec.lon);
+    el = midSun.elevation;
+    az = midSun.azimuth;
     const local = utcToZoned(h, timeZone);
     const hh = Math.floor(local.minutes / 60);
     const stamp = `${local.year}-${String(local.month).padStart(2, '0')}-${String(local.day).padStart(2, '0')}T${String(hh).padStart(2, '0')}:00`;

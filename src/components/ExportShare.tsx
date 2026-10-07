@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { fmt } from '../lib/format';
 import { CheckIcon, DownloadIcon, LinkIcon } from './icons';
 import { Card } from './ui';
 
@@ -8,14 +9,26 @@ type Status =
   | { kind: 'ok'; text: string }
   | { kind: 'error'; text: string };
 
+export interface PreviewRow {
+  hour: number;
+  elevation: number;
+  ghi: number;
+  poa: number;
+  beam: number;
+}
+
 export function ExportShare({
   buildCsv,
   fileName,
   shareUrl,
+  preview,
+  previewLabel,
 }: {
   buildCsv: () => string;
   fileName: string;
   shareUrl: string;
+  preview: PreviewRow[];
+  previewLabel: string;
 }) {
   const [csv, setCsv] = useState<Status>({ kind: 'idle' });
   const [copy, setCopy] = useState<Status>({ kind: 'idle' });
@@ -113,6 +126,39 @@ export function ExportShare({
               {copy.text}
             </p>
           ) : null}
+        </div>
+      </div>
+      <div className="export__preview">
+        <div className="table-scroll">
+          <table className="data-table data-table--compact">
+            <caption>Preview · {previewLabel} · hourly means, W/m²</caption>
+            <thead>
+              <tr>
+                <th scope="col">Hour</th>
+                <th scope="col">Sun</th>
+                <th scope="col">GHI</th>
+                <th scope="col">On panel</th>
+                <th scope="col">of which beam</th>
+              </tr>
+            </thead>
+            <tbody>
+              {preview.length ? (
+                preview.map((r) => (
+                  <tr key={r.hour}>
+                    <th scope="row">{String(r.hour).padStart(2, '0')}:00</th>
+                    <td>{fmt(r.elevation, 0)}°</td>
+                    <td>{fmt(r.ghi, 0)}</td>
+                    <td>{fmt(r.poa, 0)}</td>
+                    <td>{fmt(r.beam, 0)}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5}>No daylight on this date (polar night).</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </Card>

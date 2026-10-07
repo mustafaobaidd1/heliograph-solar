@@ -15,6 +15,7 @@ import { clamp, wrap360 } from '../lib/solar/math';
 import { formatIsoDate, parseIsoDate } from '../lib/solar/time';
 import type { AnalysisStatus } from '../lib/useAnalysis';
 import { RefreshIcon } from './icons';
+import { HeatSlices } from './HeatSlices';
 import { Card, ProgressBar, Segmented } from './ui';
 
 const W = 640;
@@ -368,7 +369,8 @@ export function Optimizer({
           )}
           {heat && (
             <g transform={`translate(${panelX} ${panelY})`} className="mark mark--panel">
-              <rect x="-6" y="-6" width="12" height="12" transform="rotate(45)" />
+              <rect x="-7" y="-7" width="14" height="14" transform="rotate(45)" className="halo" />
+              <rect x="-7" y="-7" width="14" height="14" transform="rotate(45)" />
             </g>
           )}
         </svg>
@@ -428,6 +430,7 @@ export function Optimizer({
         ) : status === 'error' ? null : (
           <p>Integrating {sourceLabel} irradiance over 15-minute steps for every orientation…</p>
         )}
+        {result && heat && opt && <HeatSlices heat={heat} optimum={opt} panel={panel} />}
         {result && (
           <p className="opt__meta">
             Grid {heat?.tilts.length}×{heat?.azimuths.length} orientations, refined by

@@ -17,7 +17,7 @@ const DEG = Math.PI / 180;
 const INK = new THREE.Color('#1d1a16');
 const CLAY = new THREE.Color('#f2ede3');
 const CLAY_SHADE = new THREE.Color('#e3dac9');
-const PLATE = new THREE.Color('#ebe4d6');
+const PLATE = new THREE.Color('#ffffff');
 
 export interface SceneState {
   sunAz: number;
@@ -50,16 +50,18 @@ function compassTexture(): THREE.CanvasTexture {
   const g = c.getContext('2d')!;
   const mid = size / 2;
   const R = size / 2;
-  g.fillStyle = '#ece5d7';
+  g.fillStyle = '#f3ede2';
   g.fillRect(0, 0, size, size);
   const ink = (a: number) => `rgba(29, 26, 22, ${a})`;
   g.translate(mid, mid);
-  // concentric rings
+  // concentric rings: plate rim, tick band, the dome's horizon circle, faint inner rings
+  const domeFrac = DOME_R / DISC_R;
   for (const [r, a, w] of [
-    [0.97, 0.55, 3],
-    [0.93, 0.35, 2],
-    [0.66, 0.16, 2],
-    [0.33, 0.16, 2],
+    [0.975, 0.55, 3],
+    [0.95, 0.3, 2],
+    [domeFrac, 0.42, 2.5],
+    [domeFrac * 0.62, 0.13, 2],
+    [domeFrac * 0.3, 0.13, 2],
   ] as const) {
     g.beginPath();
     g.strokeStyle = ink(a);
@@ -67,15 +69,15 @@ function compassTexture(): THREE.CanvasTexture {
     g.arc(0, 0, R * r, 0, Math.PI * 2);
     g.stroke();
   }
-  // ticks every 5°, longer every 15° and 45°
+  // ticks every 5° in the outer band, longer every 15° and 45°
   for (let a = 0; a < 360; a += 5) {
     const major = a % 45 === 0;
     const mid15 = a % 15 === 0;
-    const r0 = R * (major ? 0.885 : mid15 ? 0.9 : 0.915);
-    const r1 = R * 0.93;
+    const r0 = R * (major ? 0.895 : mid15 ? 0.91 : 0.925);
+    const r1 = R * 0.95;
     const t = a * DEG;
     g.beginPath();
-    g.strokeStyle = ink(major ? 0.6 : mid15 ? 0.42 : 0.28);
+    g.strokeStyle = ink(major ? 0.62 : mid15 ? 0.42 : 0.26);
     g.lineWidth = major ? 4 : mid15 ? 3 : 2;
     g.moveTo(r0 * Math.sin(t), -r0 * Math.cos(t));
     g.lineTo(r1 * Math.sin(t), -r1 * Math.cos(t));
@@ -88,34 +90,29 @@ function compassTexture(): THREE.CanvasTexture {
   for (let a = 0; a < 360; a += 45) {
     const t = a * DEG;
     g.beginPath();
-    g.moveTo(R * 0.36 * Math.sin(t), -R * 0.36 * Math.cos(t));
-    g.lineTo(R * 0.87 * Math.sin(t), -R * 0.87 * Math.cos(t));
+    g.moveTo(R * 0.3 * Math.sin(t), -R * 0.3 * Math.cos(t));
+    g.lineTo(R * (domeFrac - 0.02) * Math.sin(t), -R * (domeFrac - 0.02) * Math.cos(t));
     g.stroke();
   }
   g.setLineDash([]);
-  // labels
-  g.fillStyle = ink(0.78);
+  // engraved north arrow on the tick band
+  g.fillStyle = ink(0.75);
+  g.beginPath();
+  g.moveTo(0, -R * 0.965);
+  g.lineTo(-R * 0.022, -R * 0.885);
+  g.lineTo(R * 0.022, -R * 0.885);
+  g.closePath();
+  g.fill();
+  // azimuth numbers between the dome circle and the tick band
   g.textAlign = 'center';
   g.textBaseline = 'middle';
-  for (const [label, a] of [
-    ['N', 0],
-    ['E', 90],
-    ['S', 180],
-    ['W', 270],
-  ] as const) {
-    g.save();
-    g.rotate(a * DEG);
-    g.font = `${label === 'N' ? 112 : 92}px "Instrument Serif", Georgia, serif`;
-    g.fillText(label, 0, -R * 0.8);
-    g.restore();
-  }
-  g.font = '34px "Instrument Sans Variable", system-ui, sans-serif';
-  g.fillStyle = ink(0.5);
+  g.font = '30px "Instrument Sans Variable", system-ui, sans-serif';
+  g.fillStyle = ink(0.48);
   for (let a = 30; a < 360; a += 30) {
     if (a % 90 === 0) continue;
     g.save();
     g.rotate(a * DEG);
-    g.fillText(`${a}°`, 0, -R * 0.84);
+    g.fillText(`${a}°`, 0, -R * 0.862);
     g.restore();
   }
   const tex = new THREE.CanvasTexture(c);
@@ -222,6 +219,9 @@ export class HeliographScene {
   private lastHorizon: HorizonPoint[] | null = null;
   private southern: boolean | null = null;
   private disposed = false;
+  private userMoved = false;
+  private readonly labelLayer: HTMLDivElement;
+  private readonly labels: { el: HTMLSpanElement; pos: THREE.Vector3 }[] = [];
   onContextLost: (() => void) | null = null;
 
   constructor(host: HTMLElement) {
@@ -260,6 +260,27 @@ export class HeliographScene {
     this.controls.minPolarAngle = 8 * DEG;
     this.controls.target.set(0, 2.2, 0);
     this.controls.addEventListener('change', () => this.requestRender());
+    this.controls.addEventListener('start', () => {
+      this.userMoved = true;
+    });
+
+    // Cardinal letters as HTML so they stay upright and crisp from any viewpoint.
+    this.labelLayer = document.createElement('div');
+    this.labelLayer.className = 'scene__labels';
+    this.labelLayer.setAttribute('aria-hidden', 'true');
+    for (const [text, az] of [
+      ['N', 0],
+      ['E', 90],
+      ['S', 180],
+      ['W', 270],
+    ] as const) {
+      const el = document.createElement('span');
+      el.textContent = text;
+      el.className = `scene__cardinal scene__cardinal--${text}`;
+      this.labelLayer.appendChild(el);
+      this.labels.push({ el, pos: dir(az, 0, DISC_R + 1.05) });
+    }
+    host.appendChild(this.labelLayer);
 
     // Lights: soft warm sky fill + the Sun as a shadow-casting key light.
     this.hemi = new THREE.HemisphereLight(0xfff8ec, 0xd9ccb5, 1.15);
@@ -520,7 +541,7 @@ export class HeliographScene {
     this.lastGuides = s.guides;
     this.clearGroup(this.pathGroup);
     for (const g of s.guides) {
-      const l = this.makeLine(g.points, g.color, 1.4, g.dashed, 0.75);
+      const l = this.makeLine(g.points, g.color, 1.15, g.dashed, 0.55);
       if (l) this.pathGroup.add(l);
     }
     const main = this.makeLine(s.dayPath, s.pathColor, 3.2, false);
@@ -559,16 +580,57 @@ export class HeliographScene {
     }
   }
 
-  private placeCamera(southern: boolean): void {
-    // Look from the equator side, a little west of it, so lit facades and shadows both show.
-    const az = southern ? 28 : 208;
-    const p = dir(az, 31, 36);
-    this.camera.position.set(p.x, p.y + 2.2, p.z);
-    this.controls.target.set(0, 2.2, 0);
+  /** Key points that must stay in frame: the plate rim (top and bottom edge) and the dome. */
+  private framePoints(): THREE.Vector3[] {
+    const pts: THREE.Vector3[] = [];
+    for (let a = 0; a < 360; a += 22.5) {
+      pts.push(dir(a, 0, DISC_R + 1.4));
+      const low = dir(a, 0, DISC_R);
+      low.y = -0.6;
+      pts.push(low);
+      pts.push(dir(a, 45, DOME_R));
+    }
+    pts.push(new THREE.Vector3(0, DOME_R + 0.6, 0));
+    return pts;
+  }
+
+  /** Places the camera on a viewing direction at the smallest distance that frames the model. */
+  private fitCamera(az: number, el: number): void {
+    const target = new THREE.Vector3(0, 2.3, 0);
+    const d0 = dir(az, el, 1);
+    const pts = this.framePoints();
+    const v = new THREE.Vector3();
+    const fits = (dist: number): boolean => {
+      this.camera.position.copy(target).addScaledVector(d0, dist);
+      this.camera.lookAt(target);
+      this.camera.updateMatrixWorld();
+      for (const p of pts) {
+        v.copy(p).project(this.camera);
+        if (v.z > 1 || Math.abs(v.x) > 0.93 || Math.abs(v.y) > 0.88) return false;
+      }
+      return true;
+    };
+    let lo = 12;
+    let hi = 160;
+    for (let i = 0; i < 28; i++) {
+      const mid = (lo + hi) / 2;
+      if (fits(mid)) hi = mid;
+      else lo = mid;
+    }
+    fits(hi);
+    this.controls.target.copy(target);
+    this.controls.minDistance = hi * 0.5;
+    this.controls.maxDistance = hi * 1.7;
     this.controls.update();
   }
 
+  private placeCamera(southern: boolean): void {
+    // Look from the equator side, a little west of it, so lit facades and shadows both show.
+    this.fitCamera(southern ? 28 : 208, 29);
+  }
+
   resetView(): void {
+    this.userMoved = false;
     this.placeCamera(this.southern ?? false);
     this.requestRender();
   }
@@ -614,9 +676,9 @@ export class HeliographScene {
     this.canvas.style.width = `${w}px`;
     this.canvas.style.height = `${h}px`;
     this.camera.aspect = w / h;
-    // Keep the whole plate in view on narrow (portrait) screens.
-    this.camera.fov = w / h < 1 ? 30 + (1 - w / h) * 22 : 30;
+    this.camera.fov = 30;
     this.camera.updateProjectionMatrix();
+    if (!this.userMoved && this.southern !== null) this.placeCamera(this.southern);
     for (const m of this.lineMaterials) m.resolution.set(this.canvas.width, this.canvas.height);
     this.requestRender();
   }
@@ -632,8 +694,22 @@ export class HeliographScene {
     const moving = this.controls.update();
     for (const m of this.lineMaterials) m.resolution.set(this.canvas.width, this.canvas.height);
     this.renderer.render(this.scene, this.camera);
+    this.updateLabels();
     if (moving) this.requestRender();
   };
+
+  private readonly tmp = new THREE.Vector3();
+
+  private updateLabels(): void {
+    const w = this.host.clientWidth;
+    const h = this.host.clientHeight;
+    for (const l of this.labels) {
+      this.tmp.copy(l.pos).project(this.camera);
+      const visible = this.tmp.z < 1 && Math.abs(this.tmp.x) < 1.1 && Math.abs(this.tmp.y) < 1.1;
+      l.el.style.opacity = visible ? '1' : '0';
+      l.el.style.transform = `translate(${((this.tmp.x + 1) / 2) * w}px, ${((1 - this.tmp.y) / 2) * h}px) translate(-50%, -50%)`;
+    }
+  }
 
   dispose(): void {
     this.disposed = true;
@@ -646,5 +722,6 @@ export class HeliographScene {
     for (const d of this.disposables) d.dispose();
     this.renderer.dispose();
     this.canvas.remove();
+    this.labelLayer.remove();
   }
 }

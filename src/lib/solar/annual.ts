@@ -890,7 +890,8 @@ export function pvEstimate(
     monthlyPoa,
     annualPoa,
     annualPoaUnshaded,
-    shadingLossPct: annualPoaUnshaded > 0 ? (1 - annualPoa / annualPoaUnshaded) * 100 : 0,
+    shadingLossPct:
+      annualPoaUnshaded > 0 ? Math.max(0, (1 - annualPoa / annualPoaUnshaded) * 100) : 0,
     meanCellTemp: poaSum > 0 ? tcWeighted / poaSum : Number.NaN,
     performanceRatio: annualPoa > 0 && pv.kwp > 0 ? annualKwh / (annualPoa * pv.kwp) : 0,
   };

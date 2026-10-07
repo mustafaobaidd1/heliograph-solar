@@ -33,7 +33,7 @@ export function HowItWorks() {
             </p>
             <Tex
               block
-            >{String.raw`\delta=\arcsin(\sin\varepsilon\,\sin\lambda),\qquad E = 4\left[y\sin 2L_0-2e\sin M+4ey\sin M\cos 2L_0-\tfrac12y^2\sin 4L_0-\tfrac54e^2\sin 2M\right]`}</Tex>
+            >{String.raw`\begin{gathered}\delta=\arcsin(\sin\varepsilon\,\sin\lambda)\\ E = 4\left[y\sin 2L_0-2e\sin M+4ey\sin M\cos 2L_0-\tfrac12y^2\sin 4L_0-\tfrac54e^2\sin 2M\right]\end{gathered}`}</Tex>
             <p>
               with <Tex>{String.raw`y=\tan^2(\varepsilon/2)`}</Tex> and <Tex>E</Tex> in minutes.
               True solar time gives the hour angle{' '}
@@ -41,7 +41,7 @@ export function HowItWorks() {
             </p>
             <Tex
               block
-            >{String.raw`\cos\theta_z=\sin\varphi\sin\delta+\cos\varphi\cos\delta\cos h,\qquad \gamma_s=180^\circ+\operatorname{atan2}\!\big(\sin h,\ \cos h\sin\varphi-\tan\delta\cos\varphi\big)`}</Tex>
+            >{String.raw`\begin{gathered}\cos\theta_z=\sin\varphi\sin\delta+\cos\varphi\cos\delta\cos h\\ \gamma_s=180^\circ+\operatorname{atan2}\!\big(\sin h,\ \cos h\sin\varphi-\tan\delta\cos\varphi\big)\end{gathered}`}</Tex>
             <p>
               Elevation includes NOAA’s piecewise refraction fit. Sunrise and sunset use the hour
               angle of the 90.833° zenith (34′ refraction + 16′ solar radius), re-evaluated at the
@@ -157,7 +157,7 @@ export function HowItWorks() {
             </p>
             <Tex
               block
-            >{String.raw`T_c=T_a+\frac{\mathrm{NOCT}-20^\circ\mathrm C}{800\ \mathrm{W\,m^{-2}}}\,G_\mathrm{POA},\qquad P=P_\mathrm{STC}\,\frac{G_\mathrm{eff}}{1000}\,\big[1+\gamma_P\,(T_c-25^\circ\mathrm C)\big](1-L)`}</Tex>
+            >{String.raw`\begin{gathered}T_c=T_a+\frac{\mathrm{NOCT}-20^\circ\mathrm C}{800\ \mathrm{W\,m^{-2}}}\,G_\mathrm{POA}\\ P=P_\mathrm{STC}\,\frac{G_\mathrm{eff}}{1000}\,\big[1+\gamma_P\,(T_c-25^\circ\mathrm C)\big](1-L)\end{gathered}`}</Tex>
             <p>
               <Tex>{String.raw`G_\mathrm{eff}`}</Tex> applies the ASHRAE incidence-angle modifier{' '}
               <Tex>{String.raw`1-b_0(1/\cos\theta-1)`}</Tex> with <Tex>{String.raw`b_0=0.05`}</Tex>{' '}

@@ -11,6 +11,8 @@ export default defineConfig({
   build: {
     target: 'es2022',
     sourcemap: true,
+    // three.js is one intentional lazy chunk (~150 kB gzip) loaded right after first paint.
+    chunkSizeWarningLimit: 650,
   },
   worker: {
     format: 'es',

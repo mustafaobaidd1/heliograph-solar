@@ -19,11 +19,15 @@ export function SceneView({
   state,
   caption,
   overlay,
+  notice,
+  inset,
   onReady,
 }: {
   state: SceneState;
   caption: ReactNode;
   overlay: ReactNode;
+  notice?: ReactNode;
+  inset?: ReactNode;
   onReady?: () => void;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -124,9 +128,11 @@ export function SceneView({
       </div>
       <div className="scene__caption">{caption}</div>
       <div className="scene__overlay">{overlay}</div>
+      {notice && <div className="scene__notice">{notice}</div>}
+      {inset && <div className="scene__inset">{inset}</div>}
       {status === 'ready' && (
         <>
-          <p className={`scene__hint ${touched ? 'is-gone' : ''}`} aria-hidden="true">
+          <p className={`scene__hint ${touched || notice ? 'is-gone' : ''}`} aria-hidden="true">
             Drag to orbit · scroll or pinch to zoom
           </p>
           <button
@@ -134,7 +140,7 @@ export function SceneView({
             className="btn btn--ghost btn--sm scene__reset"
             onClick={() => sceneRef.current?.resetView()}
           >
-            <CompassIcon /> Reset view
+            <CompassIcon /> <span className="scene__reset-text">Reset view</span>
           </button>
         </>
       )}

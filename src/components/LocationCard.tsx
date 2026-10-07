@@ -26,9 +26,11 @@ export function LocationCard({
   utc,
   declination,
   eqTime,
+  onPickMap,
 }: {
   place: PlaceState;
   onPlace: (p: PlaceState) => void;
+  onPickMap: (lat: number, lon: number) => void;
   utc: number;
   declination: number;
   eqTime: number;
@@ -40,6 +42,7 @@ export function LocationCard({
   const [zoneText, setZoneText] = useState('');
   const [altText, setAltText] = useState('');
   const [errors, setErrors] = useState<CoordinateErrors & { zone?: string; alt?: string }>({});
+  const [showForm, setShowForm] = useState(false);
   const zones = useMemo(() => listTimeZones(), []);
   const offset = zoneOffsetMinutes(place.timeZone, utc);
   const preset = PLACES.find((p) => p.id === place.presetId);
@@ -124,23 +127,76 @@ export function LocationCard({
     setGeo({ kind: 'idle' });
   };
 
+  const formId = `${id}-coords`;
+  const field = (
+    key: 'lat' | 'lon' | 'alt',
+    label: string,
+    value: string,
+    set: (v: string) => void,
+  ) => (
+    <div className={`field field--sm ${errors[key] ? 'field--invalid' : ''}`}>
+      <label className="field__label" htmlFor={`${id}-${key}`}>
+        {label}
+      </label>
+      <input
+        id={`${id}-${key}`}
+        className="input"
+        inputMode="decimal"
+        autoComplete="off"
+        value={value}
+        onChange={(e) => set(e.target.value)}
+        aria-invalid={errors[key] ? true : undefined}
+        aria-describedby={errors[key] ? `${id}-${key}-err` : undefined}
+      />
+      {errors[key] && (
+        <p className="field__error" id={`${id}-${key}-err`}>
+          {errors[key]}
+        </p>
+      )}
+    </div>
+  );
+
   return (
     <section className="placebar" aria-labelledby="place-title">
       <div className="placebar__main">
         <h2 id="place-title" className="visually-hidden">
           Place
         </h2>
-        <p className="place__current" aria-live="polite">
-          <PinIcon />
-          <span>
-            <strong>{place.name}</strong>
-            {preset ? `, ${preset.country}` : ''}
-            <span className="place__meta">
-              {formatLatLon(place.lat, place.lon)} · {describeZone(place.timeZone, utc)}
-              {!place.zoneEstimated && ` (${formatUtcOffset(offset)})`} · {place.altitude} m
+        <div className="place__top">
+          <p className="place__current" aria-live="polite">
+            <PinIcon />
+            <span>
+              <strong>{place.name}</strong>
+              {preset ? `, ${preset.country}` : ''}
+              <span className="place__meta">
+                {formatLatLon(place.lat, place.lon)} · {describeZone(place.timeZone, utc)}
+                {!place.zoneEstimated && ` (${formatUtcOffset(offset)})`} · {place.altitude} m
+              </span>
             </span>
-          </span>
-        </p>
+          </p>
+          <div className="place__actions">
+            <button
+              type="button"
+              className="btn btn--sm"
+              onClick={locate}
+              disabled={geo.kind === 'locating'}
+            >
+              <LocateIcon /> {geo.kind === 'locating' ? 'Locating…' : 'Use my location'}
+            </button>
+            <button
+              type="button"
+              className={`btn btn--sm btn--ghost btn--disclosure ${showForm ? 'is-open' : ''}`}
+              aria-expanded={showForm}
+              aria-controls={formId}
+              onClick={() => {
+                if (!showForm) openCustom();
+                setShowForm(!showForm);
+              }}
+            >
+              Enter coordinates
+            </button>
+          </div>
+        </div>
         <div className="chips chips--scroll" role="group" aria-label="City presets">
           {PLACES.map((p) => (
             <button
@@ -166,117 +222,51 @@ export function LocationCard({
             </button>
           ))}
         </div>
-        <div className="place__actions">
-          <button
-            type="button"
-            className="btn btn--sm"
-            onClick={locate}
-            disabled={geo.kind === 'locating'}
+        {showForm && (
+          <form
+            id={formId}
+            className="place__form"
+            aria-label="Coordinates"
+            noValidate
+            onSubmit={(e) => {
+              e.preventDefault();
+              applyCustom();
+            }}
           >
-            <LocateIcon /> {geo.kind === 'locating' ? 'Locating…' : 'Use my location'}
-          </button>
-          <details
-            className="place__custom"
-            onToggle={(e) => (e.currentTarget as HTMLDetailsElement).open && openCustom()}
-          >
-            <summary className="btn btn--sm btn--ghost">Enter coordinates</summary>
-            <form
-              className="place__form"
-              noValidate
-              onSubmit={(e) => {
-                e.preventDefault();
-                applyCustom();
-              }}
-            >
-              <div className={`field field--sm ${errors.lat ? 'field--invalid' : ''}`}>
-                <label className="field__label" htmlFor={`${id}-lat`}>
-                  Latitude °
-                </label>
-                <input
-                  id={`${id}-lat`}
-                  className="input"
-                  inputMode="decimal"
-                  value={latText}
-                  onChange={(e) => setLatText(e.target.value)}
-                  aria-invalid={errors.lat ? true : undefined}
-                  aria-describedby={errors.lat ? `${id}-lat-err` : undefined}
-                />
-                {errors.lat && (
-                  <p className="field__error" id={`${id}-lat-err`}>
-                    {errors.lat}
-                  </p>
-                )}
-              </div>
-              <div className={`field field--sm ${errors.lon ? 'field--invalid' : ''}`}>
-                <label className="field__label" htmlFor={`${id}-lon`}>
-                  Longitude °
-                </label>
-                <input
-                  id={`${id}-lon`}
-                  className="input"
-                  inputMode="decimal"
-                  value={lonText}
-                  onChange={(e) => setLonText(e.target.value)}
-                  aria-invalid={errors.lon ? true : undefined}
-                  aria-describedby={errors.lon ? `${id}-lon-err` : undefined}
-                />
-                {errors.lon && (
-                  <p className="field__error" id={`${id}-lon-err`}>
-                    {errors.lon}
-                  </p>
-                )}
-              </div>
-              <div className={`field field--wide ${errors.zone ? 'field--invalid' : ''}`}>
-                <label className="field__label" htmlFor={`${id}-tz`}>
-                  Time zone (IANA)
-                </label>
-                <input
-                  id={`${id}-tz`}
-                  className="input"
-                  list={`${id}-zones`}
-                  value={zoneText}
-                  onChange={(e) => setZoneText(e.target.value)}
-                  placeholder="Estimate from longitude"
-                  aria-invalid={errors.zone ? true : undefined}
-                  aria-describedby={errors.zone ? `${id}-tz-err` : undefined}
-                  autoComplete="off"
-                />
-                <datalist id={`${id}-zones`}>
-                  {zones.map((z) => (
-                    <option key={z} value={z} />
-                  ))}
-                </datalist>
-                {errors.zone && (
-                  <p className="field__error" id={`${id}-tz-err`}>
-                    {errors.zone}
-                  </p>
-                )}
-              </div>
-              <div className={`field field--sm ${errors.alt ? 'field--invalid' : ''}`}>
-                <label className="field__label" htmlFor={`${id}-alt`}>
-                  Altitude m
-                </label>
-                <input
-                  id={`${id}-alt`}
-                  className="input"
-                  inputMode="decimal"
-                  value={altText}
-                  onChange={(e) => setAltText(e.target.value)}
-                  aria-invalid={errors.alt ? true : undefined}
-                  aria-describedby={errors.alt ? `${id}-alt-err` : undefined}
-                />
-                {errors.alt && (
-                  <p className="field__error" id={`${id}-alt-err`}>
-                    {errors.alt}
-                  </p>
-                )}
-              </div>
-              <button type="submit" className="btn btn--sm btn--primary">
-                Go there
-              </button>
-            </form>
-          </details>
-        </div>
+            {field('lat', 'Latitude °', latText, setLatText)}
+            {field('lon', 'Longitude °', lonText, setLonText)}
+            <div className={`field field--wide ${errors.zone ? 'field--invalid' : ''}`}>
+              <label className="field__label" htmlFor={`${id}-tz`}>
+                Time zone (IANA)
+              </label>
+              <input
+                id={`${id}-tz`}
+                className="input"
+                list={`${id}-zones`}
+                value={zoneText}
+                onChange={(e) => setZoneText(e.target.value)}
+                placeholder="Estimate from longitude"
+                aria-invalid={errors.zone ? true : undefined}
+                aria-describedby={errors.zone ? `${id}-tz-err` : undefined}
+                autoComplete="off"
+              />
+              <datalist id={`${id}-zones`}>
+                {zones.map((z) => (
+                  <option key={z} value={z} />
+                ))}
+              </datalist>
+              {errors.zone && (
+                <p className="field__error" id={`${id}-tz-err`}>
+                  {errors.zone}
+                </p>
+              )}
+            </div>
+            {field('alt', 'Altitude m', altText, setAltText)}
+            <button type="submit" className="btn btn--sm btn--primary">
+              Go there
+            </button>
+          </form>
+        )}
         {place.zoneEstimated && (
           <p className="note note--soft">
             Time zone estimated from longitude ({formatUtcOffset(offset)}). If local clocks differ,
@@ -290,21 +280,14 @@ export function LocationCard({
         )}
       </div>
       <WorldMap
+        variant="card"
         lat={place.lat}
         lon={place.lon}
         utc={utc}
         declination={declination}
         eqTime={eqTime}
         onPick={(lat, lon) => {
-          onPlace({
-            presetId: null,
-            name: 'Picked on the map',
-            lat,
-            lon,
-            timeZone: nauticalZone(lon),
-            altitude: 0,
-            zoneEstimated: true,
-          });
+          onPickMap(lat, lon);
           setGeo({ kind: 'idle' });
         }}
       />

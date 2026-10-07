@@ -20,7 +20,9 @@ export function WorldMap({
   declination,
   eqTime,
   onPick,
+  variant,
 }: {
+  variant: 'inset' | 'card';
   lat: number;
   lon: number;
   utc: number;
@@ -85,7 +87,7 @@ export function WorldMap({
   };
 
   return (
-    <figure className="worldmap">
+    <figure className={`worldmap worldmap--${variant}`}>
       <svg
         ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
@@ -121,7 +123,9 @@ export function WorldMap({
       <figcaption>
         {failed
           ? 'The map outline could not load; coordinates and presets still work.'
-          : 'Click the map to pick a place · shaded = night now · dot = subsolar point'}
+          : variant === 'inset'
+            ? 'Key map · click to move · shade = night'
+            : 'Tap the map to pick a place · shaded = night now · dot = subsolar point'}
       </figcaption>
     </figure>
   );

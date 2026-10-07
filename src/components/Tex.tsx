@@ -39,6 +39,9 @@ export function KatexProvider({ children }: { children: ReactNode }) {
       start();
       return;
     }
+    // Also warm the cache once the page has settled, so equations are typeset before anyone
+    // scrolls down to them.
+    const idle = window.setTimeout(start, 4000);
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
@@ -52,6 +55,7 @@ export function KatexProvider({ children }: { children: ReactNode }) {
     return () => {
       alive = false;
       io.disconnect();
+      window.clearTimeout(idle);
     };
   }, []);
 
