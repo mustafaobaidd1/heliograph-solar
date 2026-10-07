@@ -205,6 +205,7 @@ export class HeliographScene {
   private readonly controls: OrbitControls;
   private readonly sunLight: THREE.DirectionalLight;
   private readonly hemi: THREE.HemisphereLight;
+  private readonly moon: THREE.DirectionalLight;
   private readonly sun: THREE.Mesh;
   private readonly glow: THREE.Sprite;
   private readonly panelPivot = new THREE.Group();
@@ -285,6 +286,10 @@ export class HeliographScene {
     // Lights: soft warm sky fill + the Sun as a shadow-casting key light.
     this.hemi = new THREE.HemisphereLight(0xfff8ec, 0xd9ccb5, 1.15);
     this.scene.add(this.hemi);
+    // Soft, shadowless fill after sunset so the paper model reads as moonlit, not dark.
+    this.moon = new THREE.DirectionalLight(0xd3dcea, 0);
+    this.moon.position.copy(dir(150, 58, 40));
+    this.scene.add(this.moon);
     this.sunLight = new THREE.DirectionalLight(0xfff3df, 2.6);
     this.sunLight.castShadow = true;
     const small = Math.min(window.innerWidth, window.innerHeight) < 700;
@@ -565,8 +570,15 @@ export class HeliographScene {
     this.clearGroup(this.skylineGroup);
     const boxes = skylineBoxes(points);
     if (!boxes.length) return;
-    const mat = new THREE.MeshStandardMaterial({ color: 0xded4c2, roughness: 0.95 });
-    const edge = new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.45 });
+    // Context massing is drawn ghosted so it never hides the model; it still casts real shadows.
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0xd9cfbd,
+      roughness: 0.95,
+      transparent: true,
+      opacity: 0.32,
+      depthWrite: false,
+    });
+    const edge = new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.5 });
     for (const b of boxes) {
       const g = new THREE.Group();
       const geo = new THREE.BoxGeometry(b.w, b.h, b.d);
@@ -657,8 +669,10 @@ export class HeliographScene {
     this.sunLight.intensity = up ? 2.65 * THREE.MathUtils.smoothstep(s.sunEl, -0.3, 6) : 0;
     this.sunLight.castShadow = up;
     const day = THREE.MathUtils.smoothstep(s.sunEl, -8, 4);
-    this.hemi.intensity = 0.55 + 0.6 * day;
-    this.hemi.color.set(0xd5dbe6).lerp(new THREE.Color(0xfff8ec), day);
+    this.hemi.intensity = 1.35 - 0.2 * day;
+    this.moon.intensity = 1.5 * (1 - day);
+    this.hemi.color.set(0xd9e0ec).lerp(new THREE.Color(0xfff8ec), day);
+    this.hemi.groundColor.set(0xa49d92).lerp(new THREE.Color(0xd9ccb5), day);
     this.host.dataset.night = s.sunEl < -0.3 ? 'true' : 'false';
 
     // Panel orientation: tilt about local x, then heading about y (see docs in siteModel).

@@ -5,7 +5,7 @@ import type { DayPoint } from '../lib/solar/model';
 import { formatDuration } from '../lib/solar/time';
 import { RefreshIcon } from './icons';
 import { DayChart } from './DayChart';
-import { Card, Segmented } from './ui';
+import { Card, Segmented, TabularNumber } from './ui';
 
 export type ClimateStatus =
   | { kind: 'idle' }
@@ -126,7 +126,7 @@ export function LiveReadout({
         <div className="big">
           <span className="big__label">{usingClimate ? 'Average now' : 'Right now'}</span>
           <span className="big__value" data-testid="poa-now">
-            {fmt(poaNow, 0)}
+            <TabularNumber text={fmt(poaNow, 0)} />
             <span className="big__unit">W/m²</span>
           </span>
           <span className="big__sub">
@@ -148,7 +148,7 @@ export function LiveReadout({
         <div className="big">
           <span className="big__label">{usingClimate ? 'Average day' : 'Today, clear sky'}</span>
           <span className="big__value" data-testid="day-total">
-            {fmt(dayTotal, 2)}
+            <TabularNumber text={fmt(dayTotal, 2)} />
             <span className="big__unit">kWh/m²</span>
           </span>
           <span className="big__sub">
@@ -176,7 +176,10 @@ export function LiveReadout({
         </div>
         <div>
           <dt>Incidence</dt>
-          <dd>{up ? deg(aoi, 0) : '–'}</dd>
+          <dd>
+            {up ? deg(aoi, 0) : '–'}
+            {up && aoi > 90 && <small> behind</small>}
+          </dd>
         </div>
         <div>
           <dt>Sunrise</dt>

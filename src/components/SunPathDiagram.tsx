@@ -232,7 +232,10 @@ export function SunPathDiagram({
         >
           <EraserIcon /> Erase
         </button>
-        <span className="sunpath__readout" aria-hidden="true">
+        <span
+          className={`sunpath__readout ${hover ? '' : 'sunpath__readout--hint'}`}
+          aria-hidden="true"
+        >
           {hover
             ? `az ${fmt(hover.az, 0)}° · el ${fmt(hover.el, 0)}°`
             : mode === 'view'

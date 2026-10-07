@@ -4,7 +4,7 @@ import { LIMITS } from '../lib/state';
 import type { PvState } from '../lib/state';
 import type { PvResult } from '../lib/solar/annual';
 import { MONTH_SHORT } from '../lib/solar/time';
-import { Card, NumberField } from './ui';
+import { Card, NumberField, TabularNumber } from './ui';
 
 const W = 420;
 const H = 170;
@@ -153,7 +153,7 @@ export function PvEstimate({
             <>
               <div className="pv__headline">
                 <span className="big__value" data-testid="pv-annual">
-                  {fmt(pv.annualKwh, 0)}
+                  <TabularNumber text={fmt(pv.annualKwh, 0)} />
                   <span className="big__unit">kWh/yr</span>
                 </span>
                 <span className="big__sub">

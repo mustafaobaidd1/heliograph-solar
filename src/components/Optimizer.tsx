@@ -345,7 +345,7 @@ export function Optimizer({
           <text
             transform={`translate(12 ${M.t + PH / 2}) rotate(-90)`}
             textAnchor="middle"
-            className="axis-title"
+            className="axis-title axis-title--y"
           >
             Tilt
           </text>

@@ -254,3 +254,23 @@ export function ProgressBar({ value, label }: { value: number; label: string }) 
     </div>
   );
 }
+
+/**
+ * Instrument Serif has no tabular figures, so each digit gets a fixed-width slot: live
+ * readouts keep a steady width while scrubbing. The text stays one readable string.
+ */
+export function TabularNumber({ text }: { text: string }) {
+  return (
+    <span className="tnum">
+      {[...text].map((ch, i) =>
+        /\d/.test(ch) ? (
+          <span key={i} className="tnum__d">
+            {ch}
+          </span>
+        ) : (
+          ch
+        ),
+      )}
+    </span>
+  );
+}

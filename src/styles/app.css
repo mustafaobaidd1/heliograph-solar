@@ -1112,7 +1112,7 @@ main {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 44px 16px 16px;
+  padding: 40px 16px 54px;
   gap: 8px;
 }
 
@@ -1606,6 +1606,12 @@ main {
   font-variant-numeric: tabular-nums lining-nums;
   letter-spacing: -0.01em;
   white-space: nowrap;
+}
+
+.tnum__d {
+  display: inline-block;
+  width: 0.47em;
+  text-align: center;
 }
 
 .big__unit {
@@ -3118,7 +3124,57 @@ main {
   .big__value {
     font-size: 36px;
   }
+}
+
+/* Chart text is in SVG user units, so it shrinks with the drawing on narrow screens:
+   enlarge it there to stay readable (≈ 9–11 px on a 390 px phone). */
+@media (max-width: 760px) {
+  .heat__overlay .axis-label,
+  .heat__overlay .axis-title {
+    font-size: 19px;
+  }
+  .heat__overlay .iso-label {
+    font-size: 17px;
+  }
+  .heat__overlay .axis-title--y {
+    display: none;
+  }
+  .heat__overlay .mark--opt circle {
+    r: 9;
+  }
+  .daychart .axis text,
+  .daychart .axis-label,
+  .monthly .axis text,
+  .monthly .axis-label {
+    font-size: 13.5px;
+  }
+  .sp-ringlabel,
+  .sp-azlabel,
+  .sp-hourlabel {
+    font-size: 16px;
+  }
+  .sp-cardinal {
+    font-size: 28px;
+  }
+  .sp-sunlabel {
+    font-size: 17px;
+  }
+  .slices__charts {
+    grid-template-columns: 1fr;
+  }
+  .facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 359px) {
   .facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (hover: none) {
+  .sunpath__readout--hint {
+    display: none;
   }
 }
