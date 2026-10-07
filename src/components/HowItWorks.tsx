@@ -43,10 +43,13 @@ export function HowItWorks() {
               block
             >{String.raw`\begin{gathered}\cos\theta_z=\sin\varphi\sin\delta+\cos\varphi\cos\delta\cos h\\ \gamma_s=180^\circ+\operatorname{atan2}\!\big(\sin h,\ \cos h\sin\varphi-\tan\delta\cos\varphi\big)\end{gathered}`}</Tex>
             <p>
-              Elevation includes NOAA’s piecewise refraction fit. Sunrise and sunset use the hour
-              angle of the 90.833° zenith (34′ refraction + 16′ solar radius), re-evaluated at the
-              event time until it converges. When <Tex>{String.raw`|\cos h_0|>1`}</Tex> the Sun
-              never sets or never rises: polar day or night.
+              Elevation includes NOAA’s piecewise refraction fit. Sunrise and sunset are where the
+              Sun’s centre crosses the 90.833° zenith (34′ refraction + 16′ solar radius), the
+              condition NOAA solves with <Tex>{String.raw`\cos h_0`}</Tex>. Here the noon-centred
+              day is sampled every 10 minutes (including both midnights and noon) and each crossing
+              is refined by bisection, so transition days near the poles, when the Sun dips below
+              the horizon for only a few minutes, are found too. No crossing at all means polar day
+              or night.
             </p>
           </article>
 
@@ -283,7 +286,7 @@ export function HowItWorks() {
               4,
             )}
             ° over four cases. USNO rise/set: identical to the minute. Solar noon differs from NOAA
-            by up to 7 s because NOAA’s calculator evaluates the equation of time half a day early;
+            by up to 15 s because NOAA’s calculator evaluates the equation of time half a day early;
             USNO’s transit times agree with ours.
           </p>
           <div

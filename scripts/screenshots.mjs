@@ -4,6 +4,10 @@ import { mkdir } from 'node:fs/promises';
 import { chromium } from '@playwright/test';
 import { preview } from 'vite';
 
+// A fixed, representative view (winter-solstice morning in Amman, long shadows) keeps the
+// README images reproducible instead of depending on the clock when the script runs.
+const QUERY = process.env.SHOT_QUERY ?? '?place=amman&date=2026-12-21&time=0945&tilt=30&az=180';
+
 const shots = [
   { file: 'docs/screenshots/desktop.png', width: 1440, height: 900, scale: 1 },
   { file: 'docs/screenshots/tablet.png', width: 834, height: 1112, scale: 1 },
@@ -25,7 +29,7 @@ try {
       viewport: { width: shot.width, height: shot.height },
       deviceScaleFactor: shot.scale,
     });
-    await page.goto(url);
+    await page.goto(url + QUERY);
     await page.waitForSelector('html[data-ready="true"]', { timeout: 30_000 });
     // Give animations and simulations a moment to reach a representative frame.
     await page.waitForTimeout(Number(process.env.SHOT_DELAY ?? 2500));

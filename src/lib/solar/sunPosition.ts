@@ -5,7 +5,7 @@
  * NOAA quotes ±1 min for sunrise/sunset at mid-latitudes and better than 0.01° for
  * position between 1800 and 2100; refraction near the horizon is the main uncertainty.
  */
-import { DEG, RAD, clamp, cosd, tand } from './math';
+import { DEG, RAD, clamp } from './math';
 import { MS_PER_DAY, MS_PER_MINUTE, julianCentury, julianDay } from './time';
 import type { CalendarDate } from './time';
 
@@ -150,10 +150,6 @@ export function sunPositionFromGeometry(
 /** Geometric zenith of the Sun's centre at apparent sunrise/sunset: 34′ refraction + 16′ semi-diameter. */
 export const SUNRISE_ZENITH = 90.833;
 
-function sunriseHourAngleArg(latDeg: number, declDeg: number): number {
-  return cosd(SUNRISE_ZENITH) / (cosd(latDeg) * cosd(declDeg)) - tand(latDeg) * tand(declDeg);
-}
-
 export interface SunTimes {
   /** UTC instant of local apparent noon (Sun on the meridian). */
   solarNoonUtc: number;
@@ -161,9 +157,10 @@ export interface SunTimes {
   noonElevation: number;
   sunriseUtc: number | null;
   sunsetUtc: number | null;
-  /** 'day' = the Sun never sets on this date, 'night' = it never rises. */
+  /** 'day' = the Sun never sets on this date, 'night' = it never rises. On transition days
+   * near the poles only one of sunrise/sunset exists and polar is null. */
   polar: 'day' | 'night' | null;
-  /** Minutes between sunrise and sunset (1440 for polar day, 0 for polar night). */
+  /** Minutes the Sun is up in the noon-centred day (1440 for polar day, 0 for polar night). */
   dayLength: number;
   /** Declination at solar noon, degrees. */
   declination: number;
@@ -172,10 +169,13 @@ export interface SunTimes {
 }
 
 /**
- * Sunrise, solar noon and sunset for a calendar date at a longitude. Follows NOAA's method
- * (hour angle of the 90.833° zenith, refined at the event time) but iterates to convergence
- * instead of NOAA's single refinement step. Events are found around the solar noon that falls
- * on the given calendar date, which is the local date for any civil time zone.
+ * Sunrise, solar noon and sunset for a calendar date at a longitude. Events are the crossings of
+ * the 90.833° geometric zenith (NOAA's definition) within the noon-centred day [noon − 12 h,
+ * noon + 12 h]: the elevation is sampled every 10 minutes, including both lower culminations and
+ * noon, and each crossing is refined by bisection to a fraction of a second. This agrees with NOAA's
+ * hour-angle method on ordinary days and stays correct on transition days near the poles, when
+ * the Sun only dips below (or peeks above) the horizon for a few minutes. Events are found around
+ * the solar noon that falls on the given UTC calendar date (see sunTimesForLocalDate for zones).
  */
 export function sunTimes(date: CalendarDate, latDeg: number, lonDeg: number): SunTimes {
   const day0 = Date.UTC(date.year, date.month - 1, date.day);
@@ -196,64 +196,93 @@ export function sunTimes(date: CalendarDate, latDeg: number, lonDeg: number): Su
   const solarNoonUtc = day0 + noonMin * MS_PER_MINUTE;
   const noonElevation = sunPositionFromGeometry(noonGeom, solarNoonUtc, latDeg, lonDeg).elevation;
 
+  const horizon = 90 - SUNRISE_ZENITH;
+  const f = (m: number): number =>
+    sunPositionFromGeometry(geomAt(m), day0 + m * MS_PER_MINUTE, latDeg, lonDeg).elevationTrue -
+    horizon;
+  const STEP = 10;
+  const N = 144;
+  const start = noonMin - 720;
+  const values = new Array<number>(N + 1);
+  for (let k = 0; k <= N; k++) values[k] = f(start + k * STEP);
+
+  const refine = (k: number): number => {
+    let lo = start + k * STEP;
+    let hi = lo + STEP;
+    let flo = values[k];
+    for (let i = 0; i < 12; i++) {
+      const mid = (lo + hi) / 2;
+      const fm = f(mid);
+      if (fm >= 0 === flo >= 0) {
+        lo = mid;
+        flo = fm;
+      } else hi = mid;
+    }
+    return (lo + hi) / 2;
+  };
+
+  const noonK = N / 2;
+  let rise: number | null = null;
+  let set: number | null = null;
+  for (let k = noonK - 1; k >= 0; k--) {
+    if (values[k] < 0 && values[k + 1] >= 0) {
+      rise = refine(k);
+      break;
+    }
+  }
+  for (let k = noonK; k < N; k++) {
+    if (values[k] >= 0 && values[k + 1] < 0) {
+      set = refine(k);
+      break;
+    }
+  }
+
   const base = {
     solarNoonUtc,
     noonElevation,
     declination: noonGeom.declination,
     eqTime: noonGeom.eqTime,
   };
-
-  const argNoon = sunriseHourAngleArg(latDeg, noonGeom.declination);
-  if (argNoon <= -1) {
-    return { ...base, sunriseUtc: null, sunsetUtc: null, polar: 'day', dayLength: 1440 };
+  if (rise === null && set === null) {
+    const up = values[noonK] > 0;
+    return {
+      ...base,
+      sunriseUtc: null,
+      sunsetUtc: null,
+      polar: up ? 'day' : 'night',
+      dayLength: up ? 1440 : 0,
+    };
   }
-  if (argNoon >= 1) {
-    return { ...base, sunriseUtc: null, sunsetUtc: null, polar: 'night', dayLength: 0 };
-  }
-
-  const event = (rise: boolean): number => {
-    const sign = rise ? 1 : -1;
-    let t = noonMin - sign * 4 * Math.acos(argNoon) * RAD;
-    for (let i = 0; i < 8; i++) {
-      const g = geomAt(t);
-      const arg = sunriseHourAngleArg(latDeg, g.declination);
-      if (arg <= -1 || arg >= 1) break; // transition day: keep the last valid estimate
-      const ha = Math.acos(arg) * RAD;
-      const next = 720 - 4 * (lonDeg + sign * ha) - g.eqTime;
-      const done = Math.abs(next - t) < 1e-4;
-      t = next;
-      if (done) break;
-    }
-    return day0 + t * MS_PER_MINUTE;
-  };
-
-  const sunriseUtc = event(true);
-  const sunsetUtc = event(false);
   return {
     ...base,
-    sunriseUtc,
-    sunsetUtc,
+    sunriseUtc: rise === null ? null : day0 + rise * MS_PER_MINUTE,
+    sunsetUtc: set === null ? null : day0 + set * MS_PER_MINUTE,
     polar: null,
-    dayLength: (sunsetUtc - sunriseUtc) / MS_PER_MINUTE,
+    // On a transition day only one event exists: count from the window edge instead.
+    dayLength: (set ?? start + 1440) - (rise ?? start),
   };
 }
 
 /**
- * First date (searching forwards or backwards up to `maxDays`) on which the Sun both rises
- * and sets — used to explain polar day/night ("the Sun sets again on 26 July").
+ * The next sunrise or sunset after (direction 1) or before (−1) the given date's noon-centred day,
+ * as a UTC instant, searching up to `maxDays` — used to explain polar day and night ("the Sun
+ * first sets again on 26 Jul, 00:36").
  */
-export function nextOrdinaryDay(
+export function nextSunEvent(
   date: CalendarDate,
   latDeg: number,
   lonDeg: number,
-  direction: 1 | -1,
+  kind: 'rise' | 'set',
+  direction: 1 | -1 = 1,
   maxDays = 200,
-): CalendarDate | null {
+): number | null {
   const start = Date.UTC(date.year, date.month - 1, date.day);
   for (let i = 1; i <= maxDays; i++) {
     const d = new Date(start + direction * i * MS_PER_DAY);
     const cd = { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate() };
-    if (sunTimes(cd, latDeg, lonDeg).polar === null) return cd;
+    const t = sunTimes(cd, latDeg, lonDeg);
+    const event = kind === 'rise' ? t.sunriseUtc : t.sunsetUtc;
+    if (event !== null) return event;
   }
   return null;
 }

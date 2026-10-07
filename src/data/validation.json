@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-06",
+  "generated": "2026-10-07",
   "noaa": [
     {
       "case": "Amman 2026-06-21 12:00",
@@ -14,7 +14,7 @@
       "sunrise": {
         "ref": "05:31",
         "got": "05:30:49",
-        "diffS": 0
+        "diffS": 0.1
       },
       "sunset": {
         "ref": "19:45",

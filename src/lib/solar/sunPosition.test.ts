@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { nextOrdinaryDay, solarGeometry, sunPosition, sunTimes } from './sunPosition';
+import { nextSunEvent, solarGeometry, sunPosition, sunTimes } from './sunPosition';
 import { HORIZONS_CASES, NOAA_CASES as NOAA, USNO_CASES, hms } from './references';
 import { MS_PER_DAY, julianCentury, julianDay } from './time';
+import { utcToZoned } from './zone';
 
 /** Reference values with their sources and dates: see ./references.ts. */
 const localMinutes = (
@@ -105,14 +106,37 @@ describe('polar day and night', () => {
     expect(dec.noonElevation).toBeLessThan(0);
   });
 
-  it('finds when an ordinary day returns after the midnight sun', () => {
-    const next = nextOrdinaryDay({ year: 2026, month: 6, day: 21 }, 69.6492, 18.9553, 1);
-    const prev = nextOrdinaryDay({ year: 2026, month: 6, day: 21 }, 69.6492, 18.9553, -1);
-    expect(next).not.toBeNull();
-    expect(prev).not.toBeNull();
-    // Midnight sun in Tromsø lasts roughly 20 May – 22 July.
-    expect(next!.month).toBe(7);
-    expect(prev!.month).toBe(5);
+  it('finds when the midnight sun ends and when it began (USNO dates and times)', () => {
+    // USNO (aa.usno.navy.mil, queried 2026-10-06): continuously above the horizon from 19 May
+    // to 25 July 2026; the Sun sets again on 26 July at 00:36 and last set on 18 May at 00:28
+    // (rising again at 00:53). Near 70° N around midnight the Sun skims the horizon so slowly
+    // that 0.01° of model difference moves the event by minutes, hence the 3-minute tolerance.
+    const local = (utc: number) => utcToZoned(utc, 'Europe/Oslo');
+    const june = { year: 2026, month: 6, day: 21 };
+    const next = local(nextSunEvent(june, 69.65, 18.96, 'set', 1)!);
+    expect(next).toMatchObject({ year: 2026, month: 7, day: 26 });
+    expect(Math.abs(next.minutes - 36)).toBeLessThan(3);
+    const prev = local(nextSunEvent(june, 69.65, 18.96, 'set', -1)!);
+    expect(prev).toMatchObject({ year: 2026, month: 5, day: 18 });
+    expect(Math.abs(prev.minutes - 28)).toBeLessThan(3);
+  });
+
+  it('a transition day has a sunrise but no sunset (18 May in Tromsø)', () => {
+    const t = sunTimes({ year: 2026, month: 5, day: 18 }, 69.65, 18.96);
+    expect(t.polar).toBeNull();
+    expect(t.sunsetUtc).toBeNull();
+    const rise = utcToZoned(t.sunriseUtc!, 'Europe/Oslo');
+    expect(rise).toMatchObject({ month: 5, day: 18 });
+    expect(Math.abs(rise.minutes - 53)).toBeLessThan(3); // USNO: Rise 00:53
+  });
+
+  it('polar night ends when the Sun first peeks above the horizon at noon', () => {
+    const rise = nextSunEvent({ year: 2026, month: 12, day: 21 }, 69.65, 18.96, 'rise', 1)!;
+    const z = utcToZoned(rise, 'Europe/Oslo');
+    expect(z.year).toBe(2027);
+    expect(z.month).toBe(1);
+    expect(z.minutes).toBeGreaterThan(10 * 60);
+    expect(z.minutes).toBeLessThan(13 * 60);
   });
 
   it('handles the North Pole and the equator without NaN', () => {

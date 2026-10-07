@@ -29,7 +29,7 @@ import type { ClimateNormals } from './lib/solar/climate';
 import type { HorizonPoint } from './lib/solar/horizon';
 import { SiteModel, dayProfile } from './lib/solar/model';
 import type { SiteSpec } from './lib/solar/model';
-import { nextOrdinaryDay, sunPosition } from './lib/solar/sunPosition';
+import { nextSunEvent, sunPosition } from './lib/solar/sunPosition';
 import { MONTH_SHORT, daysInYear, formatClock, formatLongDate } from './lib/solar/time';
 import type { CalendarDate } from './lib/solar/time';
 import { nauticalZone, utcToZoned, zonedTimeToUtc } from './lib/solar/zone';
@@ -247,13 +247,27 @@ export function App() {
   const setMin = localMin(times.sunsetUtc);
   const facts: SunFacts = useMemo(() => {
     let polarNote: string | null = null;
+    const at = (utc: number) => {
+      const z = utcToZoned(utc, place.timeZone);
+      return `${z.day} ${MONTH_SHORT[z.month - 1]} at ${formatClock(z.minutes)}`;
+    };
     if (times.polar) {
-      const back = nextOrdinaryDay(date, place.lat, place.lon, 1);
-      const when = back ? `${back.day} ${MONTH_SHORT[back.month - 1]}` : 'in a few months';
+      const evt = nextSunEvent(
+        date,
+        place.lat,
+        place.lon,
+        times.polar === 'day' ? 'set' : 'rise',
+        1,
+      );
+      const when = evt !== null ? at(evt) : 'in a few months';
       polarNote =
         times.polar === 'day'
           ? `Midnight sun: on this date the Sun never sets at ${fmt(Math.abs(place.lat), 1)}° ${place.lat >= 0 ? 'N' : 'S'}. It first sets again on ${when}.`
           : `Polar night: the Sun stays below the horizon all day (highest point ${fmt(times.noonElevation, 1)}°). It first rises again on ${when}.`;
+    } else if (times.sunsetUtc === null && times.sunriseUtc !== null) {
+      polarNote = `The midnight sun begins: after rising on ${at(times.sunriseUtc)} the Sun stays above the horizon through the night.`;
+    } else if (times.sunriseUtc === null && times.sunsetUtc !== null) {
+      polarNote = `The midnight sun ends: the Sun has been up since the previous day and sets on ${at(times.sunsetUtc)}.`;
     }
     const fmtEvent = (m: number | null) => (m === null ? null : formatClock(m));
     return {

@@ -3062,11 +3062,11 @@ main {
     gap: 10px;
   }
   .daybar__jumps {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    margin: 0 calc(-1 * clamp(12px, 2.4vw, 32px));
-    padding: 2px clamp(12px, 2.4vw, 32px) 4px;
-    scrollbar-width: none;
+    flex-wrap: wrap;
+  }
+  .daybar__jumps .daybar__jumplabel {
+    width: 100%;
+    margin: 0 0 2px;
   }
   .card__title {
     font-size: 23px;
