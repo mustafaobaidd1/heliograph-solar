@@ -1,0 +1,347 @@
+{
+  "generated": "2026-10-06",
+  "noaa": [
+    {
+      "case": "Amman 2026-06-21 12:00",
+      "elevation": {
+        "ref": 78.04,
+        "got": 78.036
+      },
+      "azimuth": {
+        "ref": 132.97,
+        "got": 132.967
+      },
+      "sunrise": {
+        "ref": "05:31",
+        "got": "05:30:49",
+        "diffS": 0
+      },
+      "sunset": {
+        "ref": "19:45",
+        "got": "19:45:21",
+        "diffS": 0
+      },
+      "noon": {
+        "ref": "12:37:58",
+        "got": "12:38:05",
+        "diffS": 7
+      }
+    },
+    {
+      "case": "Greenwich 2026-03-20 12:00",
+      "elevation": {
+        "ref": 38.48,
+        "got": 38.476
+      },
+      "azimuth": {
+        "ref": 177.63,
+        "got": 177.626
+      },
+      "sunrise": {
+        "ref": "06:03",
+        "got": "06:02:52",
+        "diffS": 0.1
+      },
+      "sunset": {
+        "ref": "18:13",
+        "got": "18:13:00",
+        "diffS": 0.1
+      },
+      "noon": {
+        "ref": "12:07:35",
+        "got": "12:07:26",
+        "diffS": -9
+      }
+    },
+    {
+      "case": "Quito 2026-12-21 12:00",
+      "elevation": {
+        "ref": 66.57,
+        "got": 66.567
+      },
+      "azimuth": {
+        "ref": 173.04,
+        "got": 173.037
+      },
+      "sunrise": {
+        "ref": "06:08",
+        "got": "06:07:59",
+        "diffS": 0
+      },
+      "sunset": {
+        "ref": "18:16",
+        "got": "18:16:08",
+        "diffS": 0
+      },
+      "noon": {
+        "ref": "12:11:48",
+        "got": "12:12:03",
+        "diffS": 15.3
+      }
+    }
+  ],
+  "horizons": [
+    {
+      "case": "Amman 21 Jun 09:00 UT",
+      "dEl": -0.0007,
+      "dAz": -0.0066
+    },
+    {
+      "case": "Amman 21 Jun 12:30 UT",
+      "dEl": 0.0025,
+      "dAz": -0.0008
+    },
+    {
+      "case": "Greenwich 20 Mar 12:00 UT",
+      "dEl": 0.0031,
+      "dAz": 0.0006
+    },
+    {
+      "case": "Quito 21 Dec 17:00 UT",
+      "dEl": -0.0001,
+      "dAz": -0.0059
+    }
+  ],
+  "usno": [
+    {
+      "case": "Amman 21 Jun",
+      "rise": {
+        "ref": "05:31",
+        "got": "05:31"
+      },
+      "set": {
+        "ref": "19:45",
+        "got": "19:45"
+      }
+    },
+    {
+      "case": "Greenwich 20 Mar",
+      "rise": {
+        "ref": "06:03",
+        "got": "06:03"
+      },
+      "set": {
+        "ref": "18:13",
+        "got": "18:13"
+      }
+    },
+    {
+      "case": "Quito 21 Dec",
+      "rise": {
+        "ref": "06:08",
+        "got": "06:08"
+      },
+      "set": {
+        "ref": "18:16",
+        "got": "18:16"
+      }
+    }
+  ],
+  "models": {
+    "solisMaxAbs": 3.347248025420413e-7,
+    "perezMaxAbs": 0.0043908682201845295,
+    "hayDaviesMaxAbs": 0.00003818926063559047,
+    "tilt0MaxAbs": 0,
+    "normalBeamMaxAbs": 1.1368683772161603e-13
+  },
+  "optimum": [
+    {
+      "place": "Amman",
+      "lat": 31.95,
+      "pvgis": 28,
+      "pvgisDb": "SARAH3",
+      "jj": 27.7,
+      "clearTilt": 31.7,
+      "climateTilt": 29.3,
+      "clearAz": 179.8,
+      "capturedPct": 99.98,
+      "clearEnergy": 2629,
+      "climateEnergy": 2331,
+      "pvgisHiy": 2341.8,
+      "gains": {
+        "rule": 0,
+        "fixed": 0,
+        "retilt2": 5.7,
+        "retilt4": 5.7,
+        "single": 28.1,
+        "dual": 44.5
+      }
+    },
+    {
+      "place": "Toronto",
+      "lat": 43.65,
+      "pvgis": 36,
+      "pvgisDb": "ERA5",
+      "jj": 33.1,
+      "clearTilt": 41.3,
+      "climateTilt": 36.9,
+      "clearAz": 180.1,
+      "capturedPct": 99.99,
+      "clearEnergy": 2473,
+      "climateEnergy": 1580,
+      "pvgisHiy": 1553.5,
+      "gains": {
+        "rule": -0.1,
+        "fixed": 0,
+        "retilt2": 5,
+        "retilt4": 5.1,
+        "single": 21.3,
+        "dual": 44.6
+      }
+    },
+    {
+      "place": "Reykjavík",
+      "lat": 64.15,
+      "pvgis": 43,
+      "pvgisDb": "SARAH3",
+      "jj": 40.4,
+      "clearTilt": 53,
+      "climateTilt": 43.8,
+      "clearAz": 180.4,
+      "capturedPct": 99.99,
+      "clearEnergy": 1912,
+      "climateEnergy": 1007,
+      "pvgisHiy": 870.81,
+      "gains": {
+        "rule": -1.6,
+        "fixed": 0,
+        "retilt2": 2.8,
+        "retilt4": 3,
+        "single": 20.5,
+        "dual": 55.8
+      }
+    },
+    {
+      "place": "Singapore",
+      "lat": 1.35,
+      "pvgis": 0,
+      "pvgisDb": "ERA5",
+      "jj": 3,
+      "clearTilt": 3.1,
+      "climateTilt": 3.3,
+      "clearAz": 179.7,
+      "capturedPct": 99.88,
+      "clearEnergy": 2706,
+      "climateEnergy": 1677,
+      "pvgisHiy": 1810.12,
+      "gains": {
+        "rule": 0,
+        "fixed": 0,
+        "retilt2": 7.4,
+        "retilt4": 7.1,
+        "single": 38.9,
+        "dual": 45.6
+      }
+    },
+    {
+      "place": "Cape Town",
+      "lat": -33.92,
+      "pvgis": 30,
+      "pvgisDb": "SARAH3",
+      "jj": 29.5,
+      "clearTilt": 33.4,
+      "climateTilt": 32.4,
+      "clearAz": 359.9,
+      "capturedPct": 99.92,
+      "clearEnergy": 2592,
+      "climateEnergy": 2335,
+      "pvgisHiy": 2171.03,
+      "gains": {
+        "rule": 0,
+        "fixed": 0,
+        "retilt2": 5.5,
+        "retilt4": 5.6,
+        "single": 26.7,
+        "dual": 44.1
+      }
+    },
+    {
+      "place": "Sydney",
+      "lat": -33.87,
+      "pvgis": 34,
+      "pvgisDb": "ERA5",
+      "jj": 29.5,
+      "clearTilt": 33.3,
+      "climateTilt": 34.3,
+      "clearAz": 359.9,
+      "capturedPct": 100,
+      "clearEnergy": 2593,
+      "climateEnergy": 1978,
+      "pvgisHiy": 1973.02,
+      "gains": {
+        "rule": 0,
+        "fixed": 0,
+        "retilt2": 5.5,
+        "retilt4": 5.6,
+        "single": 26.7,
+        "dual": 44.1
+      }
+    },
+    {
+      "place": "Quito",
+      "lat": -0.18,
+      "pvgis": 0,
+      "pvgisDb": "ERA5",
+      "jj": 0.7,
+      "clearTilt": 1.9,
+      "climateTilt": 4.3,
+      "clearAz": 0.1,
+      "capturedPct": 99.79,
+      "clearEnergy": 2763,
+      "climateEnergy": 1465,
+      "pvgisHiy": 1686.68,
+      "gains": {
+        "rule": 0,
+        "fixed": 0,
+        "retilt2": 7.6,
+        "retilt4": 7.2,
+        "single": 39.9,
+        "dual": 46.8
+      }
+    },
+    {
+      "place": "Phoenix",
+      "lat": 33.45,
+      "pvgis": 34,
+      "pvgisDb": "ERA5",
+      "jj": 28.5,
+      "clearTilt": 33,
+      "climateTilt": 32.8,
+      "clearAz": 179.8,
+      "capturedPct": 99.98,
+      "clearEnergy": 2604,
+      "climateEnergy": 2466,
+      "pvgisHiy": 2462.07,
+      "gains": {
+        "rule": 0,
+        "fixed": 0,
+        "retilt2": 5.6,
+        "retilt4": 5.6,
+        "single": 27.1,
+        "dual": 44.2
+      }
+    },
+    {
+      "place": "Tromsø",
+      "lat": 69.65,
+      "pvgis": 48,
+      "pvgisDb": "ERA5",
+      "jj": 42.4,
+      "clearTilt": 54.5,
+      "climateTilt": 46.1,
+      "clearAz": 179.9,
+      "capturedPct": 99.96,
+      "clearEnergy": 1709,
+      "climateEnergy": 882,
+      "pvgisHiy": 903.17,
+      "gains": {
+        "rule": -2.9,
+        "fixed": 0,
+        "retilt2": 1.8,
+        "retilt4": 2.1,
+        "single": 27.8,
+        "dual": 68.2
+      }
+    }
+  ]
+}

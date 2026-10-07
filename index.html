@@ -2,23 +2,53 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Heliograph — sun path and solar panel planner</title>
-    <meta name="description" content="Track the sun anywhere on Earth and find the panel tilt and orientation that collect the most energy, with shading." />
+    <meta
+      name="description"
+      content="Track the sun anywhere on Earth and find the panel tilt and orientation that collect the most energy, with shading."
+    />
     <meta name="author" content="Mustafa Obaid" />
-    <meta name="theme-color" content="#111111" />
+    <meta name="theme-color" content="#f4efe6" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Heliograph — sun path and solar panel planner" />
-    <meta property="og:description" content="Track the sun anywhere on Earth and find the panel tilt and orientation that collect the most energy, with shading." />
+    <meta
+      property="og:description"
+      content="Track the sun anywhere on Earth and find the panel tilt and orientation that collect the most energy, with shading."
+    />
     <meta property="og:url" content="https://mustafaobaidd1.github.io/heliograph-solar/" />
-    <meta property="og:image" content="https://mustafaobaidd1.github.io/heliograph-solar/og-image.png" />
+    <meta
+      property="og:image"
+      content="https://mustafaobaidd1.github.io/heliograph-solar/og-image.png"
+    />
     <meta name="twitter:card" content="summary_large_image" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #f4efe6;
+        color: #1d1a16;
+      }
+      .boot {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font:
+          400 34px/1 Georgia,
+          serif;
+        letter-spacing: -0.01em;
+        color: rgba(29, 26, 22, 0.35);
+      }
+    </style>
   </head>
   <body>
-    <noscript>This interactive project needs JavaScript enabled.</noscript>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <noscript
+      >Heliograph is an interactive sun-path and solar planner and needs JavaScript
+      enabled.</noscript
+    >
+    <div id="app"><div class="boot">Heliograph</div></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

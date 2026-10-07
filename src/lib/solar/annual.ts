@@ -705,6 +705,8 @@ export interface StrategyResult {
   /** Tilts used (rule/fixed: one; re-tilt: per season) */
   tilts: number[];
   azimuth: number | null;
+  /** Re-tilt only: the direction faced in each season (the mount may tip either way about its E–W axis) */
+  azimuths?: number[];
 }
 
 export function compareStrategies(
@@ -724,15 +726,23 @@ export function compareStrategies(
   const retilt = (seasons: number, seasonOf: (mmdd: number) => number): StrategyResult => {
     let energy = 0;
     const tilts: number[] = [];
+    const azimuths: number[] = [];
+    const back = wrap360(opt.azimuth + 180);
     for (let s = 0; s < seasons; s++) {
       const rs = stepRanges(t, (md) => inWindow(md, window) && seasonOf(md) === s);
       if (rs.length === 0) {
         tilts.push(Number.NaN);
+        azimuths.push(opt.azimuth);
         continue;
       }
-      const r = bestTiltAtAzimuth(t, rs, opt.azimuth, views, shaded);
-      energy += r.fx;
-      tilts.push(r.x);
+      // The re-tilt mount pivots about a horizontal axis across the panel, so a season may
+      // tip it either way (this matters near the equator, where the Sun crosses the zenith).
+      const front = bestTiltAtAzimuth(t, rs, opt.azimuth, views, shaded);
+      const rear = bestTiltAtAzimuth(t, rs, back, views, shaded);
+      const useRear = rear.fx > front.fx + 1e-9 && rear.x > 0.05;
+      energy += useRear ? rear.fx : front.fx;
+      tilts.push(useRear ? rear.x : front.x);
+      azimuths.push(useRear ? back : opt.azimuth);
     }
     return {
       id: seasons === 2 ? 'retilt2' : 'retilt4',
@@ -740,6 +750,7 @@ export function compareStrategies(
       gainPct: 0,
       tilts,
       azimuth: opt.azimuth,
+      azimuths,
     };
   };
 
@@ -819,11 +830,16 @@ export interface PvResult {
   performanceRatio: number;
 }
 
+/**
+ * PV yield over the year table. `ambientC` overrides the table's air temperature (used in
+ * clear-sky mode, where there is no climatology); pass null to use the table's values.
+ */
 export function pvEstimate(
   t: YearTable,
   o: Orientation,
   view: SkyView | null,
   pv: PvParams,
+  ambientC: number | null = null,
 ): PvResult {
   const st = Math.sin(o.tilt * DEG);
   const ct = Math.cos(o.tilt * DEG);
@@ -857,7 +873,7 @@ export function pvEstimate(
 
     const iam = ashraeIam(c);
     const eff = (beam + circPart) * iam + (diff - circPart) + ground;
-    const tc = noctCellTemperature(t.airTemp[i], poa, pv.noct);
+    const tc = noctCellTemperature(ambientC ?? t.airTemp[i], poa, pv.noct);
     const p = pvPower(eff, tc, pv);
     monthlyKwh[t.month[i]] += p * h;
     monthlyPoa[t.month[i]] += (poa * h) / 1000;

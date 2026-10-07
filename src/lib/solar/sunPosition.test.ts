@@ -1,69 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { nextOrdinaryDay, solarGeometry, sunPosition, sunTimes } from './sunPosition';
+import { HORIZONS_CASES, NOAA_CASES as NOAA, USNO_CASES, hms } from './references';
 import { MS_PER_DAY, julianCentury, julianDay } from './time';
 
-/**
- * Reference values from the NOAA GML Solar Calculator, https://gml.noaa.gov/grad/solcalc/
- * (read 2026-10-06 by entering the inputs below in the live page; the page rounds elevation
- * and azimuth to 0.01°, sunrise/sunset to the minute and solar noon to the second).
- * "precise" values are the same calculator's unrounded outputs, from its own main.js.
- */
-const NOAA = [
-  {
-    name: 'Amman',
-    lat: 31.95,
-    lon: 35.93,
-    tz: 3,
-    date: { year: 2026, month: 6, day: 21 },
-    localTime: 12 * 60,
-    elevation: 78.04,
-    azimuth: 132.97,
-    eqTime: -1.8,
-    declination: 23.44,
-    solarNoon: '12:37:58',
-    sunrise: '05:31',
-    sunset: '19:45',
-    precise: { sunrise: 330.8151, sunset: 1185.3498, solarNoon: 757.974 },
-  },
-  {
-    name: 'Greenwich',
-    lat: 51.4769,
-    lon: -0.0005,
-    tz: 0,
-    date: { year: 2026, month: 3, day: 20 },
-    localTime: 12 * 60,
-    elevation: 38.48,
-    azimuth: 177.63,
-    eqTime: -7.43,
-    declination: -0.04,
-    solarNoon: '12:07:35',
-    sunrise: '06:03',
-    sunset: '18:13',
-    precise: { sunrise: 362.8677, sunset: 1093.0038, solarNoon: 727.5812 },
-  },
-  {
-    name: 'Quito',
-    lat: -0.1807,
-    lon: -78.4678,
-    tz: -5,
-    date: { year: 2026, month: 12, day: 21 },
-    localTime: 12 * 60,
-    elevation: 66.57,
-    azimuth: 173.04,
-    eqTime: 1.82,
-    declination: -23.44,
-    solarNoon: '12:11:48',
-    sunrise: '06:08',
-    sunset: '18:16',
-    precise: { sunrise: 367.9852, sunset: 1096.1259, solarNoon: 731.8078 },
-  },
-] as const;
-
-const hms = (s: string): number => {
-  const [h, m, sec] = s.split(':').map(Number);
-  return h * 60 + m + (sec ?? 0) / 60;
-};
-
+/** Reference values with their sources and dates: see ./references.ts. */
 const localMinutes = (
   utc: number,
   date: { year: number; month: number; day: number },
@@ -117,24 +57,7 @@ describe('sun position vs NOAA Solar Calculator', () => {
  * 0 m, queried 2026-10-06). The NOAA/Meeus algorithm agrees to better than 0.01°.
  */
 describe('sun position vs JPL Horizons', () => {
-  const cases = [
-    { lat: 31.95, lon: 35.93, utc: Date.UTC(2026, 5, 21, 9, 0), az: 132.973145, el: 78.036563 },
-    { lat: 31.95, lon: 35.93, utc: Date.UTC(2026, 5, 21, 12, 30), az: 268.375889, el: 51.279814 },
-    {
-      lat: 51.4769,
-      lon: -0.0005,
-      utc: Date.UTC(2026, 2, 20, 12, 0),
-      az: 177.625506,
-      el: 38.472966,
-    },
-    {
-      lat: -0.1807,
-      lon: -78.4678,
-      utc: Date.UTC(2026, 11, 21, 17, 0),
-      az: 173.042911,
-      el: 66.566725,
-    },
-  ];
+  const cases = HORIZONS_CASES;
   for (const c of cases) {
     it(`agrees within 0.01° at ${new Date(c.utc).toISOString()}`, () => {
       const p = sunPosition(c.utc, c.lat, c.lon);
@@ -149,35 +72,7 @@ describe('sun position vs JPL Horizons', () => {
  * queried 2026-10-06), times rounded to the minute by USNO.
  */
 describe('sunrise/sunset vs USNO', () => {
-  const cases = [
-    {
-      lat: 31.95,
-      lon: 35.93,
-      tz: 3,
-      date: { year: 2026, month: 6, day: 21 },
-      rise: '05:31',
-      set: '19:45',
-      noon: '12:38',
-    },
-    {
-      lat: 51.4769,
-      lon: -0.0005,
-      tz: 0,
-      date: { year: 2026, month: 3, day: 20 },
-      rise: '06:03',
-      set: '18:13',
-      noon: '12:07',
-    },
-    {
-      lat: -0.1807,
-      lon: -78.4678,
-      tz: -5,
-      date: { year: 2026, month: 12, day: 21 },
-      rise: '06:08',
-      set: '18:16',
-      noon: '12:12',
-    },
-  ];
+  const cases = USNO_CASES;
   for (const c of cases) {
     it(`matches to the minute for ${JSON.stringify(c.date)}`, () => {
       const t = sunTimes(c.date, c.lat, c.lon);

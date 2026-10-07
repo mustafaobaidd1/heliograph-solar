@@ -25,6 +25,7 @@ import type { YearTable } from './annual';
 import type { ClimateNormals } from './climate';
 import { HORIZON_PRESETS } from './horizon';
 import { SiteModel, dayProfile } from './model';
+import { PVGIS_OPTIMA as PVGIS, jacobsonJadhav } from './references';
 import type { SiteSpec } from './model';
 import { zonedTimeToUtc } from './zone';
 
@@ -210,23 +211,6 @@ describe('shading by a drawn skyline', () => {
  * Solar Energy 169, 55–66, Fig. 1: NH 1.3793 + φ(1.2011 + φ(−0.014404 + 0.000080509 φ)),
  * SH −0.41657 + φ(1.4216 + φ(0.024051 + 0.00021828 φ)).
  */
-const jacobsonJadhav = (lat: number): number =>
-  lat >= 0
-    ? 1.3793 + lat * (1.2011 + lat * (-0.014404 + lat * 0.000080509))
-    : -(-0.41657 + lat * (1.4216 + lat * (0.024051 + lat * 0.00021828)));
-
-const PVGIS: Record<string, { slope: number }> = {
-  amman: { slope: 28 },
-  toronto: { slope: 36 },
-  reykjavik: { slope: 43 },
-  singapore: { slope: 0 },
-  'cape-town': { slope: 30 },
-  sydney: { slope: 34 },
-  quito: { slope: 0 },
-  phoenix: { slope: 34 },
-  tromso: { slope: 48 },
-};
-
 describe('optimum tilt vs PVGIS and Jacobson & Jadhav (2018)', () => {
   const results = PLACES.map((p) => {
     const model = site(p.lat, p.lon, p.altitude);
